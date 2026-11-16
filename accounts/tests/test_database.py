@@ -22,8 +22,19 @@ class RegistrationJourney(TestCase):
     def test_login_logout_and_session_protection(self):
         User.objects.create_user(username="alice", email="alice@example.test", password=PASSWORD)
         response = self.client.post("/accounts/login/", {"username": "alice", "password": PASSWORD})
-        self.assertRedirects(response, "/accounts/dashboard/")
-        self.assertContains(self.client.get("/accounts/dashboard/"), "Welcome, alice")
+        self.assertRedirects(response, "/accounts/dashboard/", fetch_redirect_response=False)
+        self.assertContains(self.client.get("/accounts/dashboard/member/"), "Hello, alice")
         self.assertRedirects(self.client.post("/accounts/logout/"), "/accounts/login/")
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertRedirects(self.client.get("/accounts/dashboard/"), "/accounts/login/?next=/accounts/dashboard/", fetch_redirect_response=False)
+
+    def test_roles_are_enforced_at_direct_urls(self):
+        member = User.objects.create_user(username="member", email="member@example.test", password=PASSWORD)
+        admin = User.objects.create_user(username="admin", email="admin@example.test", password=PASSWORD, role=User.Role.ADMIN)
+        self.client.force_login(member)
+        self.assertEqual(self.client.get("/accounts/dashboard/admin/").status_code, 403)
+        self.assertRedirects(self.client.get("/accounts/dashboard/"), "/accounts/dashboard/member/")
+        self.client.force_login(admin)
+        self.assertEqual(self.client.get("/accounts/dashboard/member/").status_code, 403)
+        response = self.client.get("/accounts/dashboard/admin/")
+        self.assertEqual(response.context["counts"], {"total": 2, "members": 1, "admins": 1})

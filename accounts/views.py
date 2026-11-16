@@ -3,10 +3,14 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.db import IntegrityError, transaction
+from django.db.models import Count, Q
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 from .forms import RegistrationForm
+from .models import User
+from .permissions import role_required
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -63,7 +67,31 @@ def logout(request):
 @login_required
 @require_http_methods(["GET", "HEAD"])
 def dashboard(request):
-    return render(request, "accounts/dashboard.html")
+    if request.user.role == User.Role.ADMIN:
+        return redirect("accounts:admin_dashboard")
+    if request.user.role == User.Role.MEMBER:
+        return redirect("accounts:member_dashboard")
+    raise PermissionDenied
+
+
+@login_required
+@role_required(User.Role.MEMBER)
+@require_http_methods(["GET", "HEAD"])
+def member_dashboard(request):
+    return render(request, "accounts/member_dashboard.html")
+
+
+@login_required
+@role_required(User.Role.ADMIN)
+@require_http_methods(["GET", "HEAD"])
+def admin_dashboard(request):
+    counts = User.objects.aggregate(
+        total=Count("pk"),
+        members=Count("pk", filter=Q(role=User.Role.MEMBER)),
+        admins=Count("pk", filter=Q(role=User.Role.ADMIN)),
+    )
+    recent_users = User.objects.order_by("-date_joined", "-pk")[:5]
+    return render(request, "accounts/admin_dashboard.html", {"counts": counts, "recent_users": recent_users})
 
 
 def forbidden(request, exception=None):

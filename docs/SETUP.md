@@ -36,7 +36,7 @@ There is no SQLite fallback. Session pooler port 5432 avoids the IPv6-only direc
 ## Tests
 
 ```bash
-python manage.py test accounts.tests.test_registration accounts.tests.test_sessions --settings=config.test_settings
+python manage.py test accounts.tests.test_registration accounts.tests.test_sessions accounts.tests.test_roles --settings=config.test_settings
 ```
 
 Database tests need a **separate, disposable Supabase project**. Set its URL as `TEST_DATABASE_URL`; never point it at production. Tests flush that project's database. `--keepdb` reuses the database rather than requesting database-creation privileges.
@@ -55,7 +55,17 @@ No uploads are implemented for this account-only submission, so Storage credenti
 
 - [x] Registration, validation, case-insensitive uniqueness, hashed passwords
 - [x] Login / logout, CSRF-protected POST logout and protected pages
-- [ ] Role dashboards
+- [x] Admin / Member dashboards, server-side role checks and role-based redirects
 - [ ] Own profile view / edit
 
 Use a public repository named `WeFiles-Lastname-Firstname-Section`. Never commit `.env`. Rotate any credential that has ever been committed. Commit dates should record when work was actually committed.
+
+## Roles
+
+New registrations are always Members. Register an account, then assign its Admin role from the operator's terminal:
+
+```bash
+python manage.py promote_workspace_admin YOUR_USERNAME
+```
+
+Admin dashboard: `/accounts/dashboard/admin/`; Member dashboard: `/accounts/dashboard/member/`. Typing the other role's URL returns 403. Django maintenance privileges (`is_staff`, `is_superuser`) are separate. For maintenance access, use `python manage.py createsuperuser` and `/maintenance/`; set its workspace role explicitly if it also needs the Admin dashboard. Workspace Admin accounts see real account counts and recent registrations; Members see their own account summary. No role fields are accepted at registration.
