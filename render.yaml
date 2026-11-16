@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: wefiles-accounts
+    runtime: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --access-logfile - --access-logformat '%(m)s %(s)s %(L)s'
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: TRUST_PROXY
+        value: "True"

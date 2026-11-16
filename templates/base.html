@@ -1,0 +1,19 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}WeFiles{% endblock %} · WeFiles</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="{% url 'home' %}" aria-label="WeFiles home"><span class="brand-mark" aria-hidden="true">W<span>F</span></span>WeFiles</a>
+<nav aria-label="Main navigation">{% block navigation %}<a href="{% url 'accounts:register' %}">Create account</a>{% endblock %}</nav>
+</header>
+<main id="main" tabindex="-1">
+{% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+{% block content %}{% endblock %}
+</main>
+<footer><span>WeFiles · Your crew, connected.</span><span>Account portal</span></footer>
+</body></html>
