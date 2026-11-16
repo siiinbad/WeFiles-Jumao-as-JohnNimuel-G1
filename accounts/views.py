@@ -1,7 +1,11 @@
 from django.contrib import messages
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_http_methods
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_http_methods, require_POST
 from .forms import RegistrationForm
 
 
@@ -12,6 +16,8 @@ def home(request):
 
 @require_http_methods(["GET", "POST"])
 def register(request):
+    if request.user.is_authenticated:
+        return redirect("accounts:dashboard")
     form = RegistrationForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
         try:
@@ -27,6 +33,37 @@ def register(request):
 
 def registered(request):
     return render(request, "accounts/registered.html")
+
+
+@require_http_methods(["GET", "POST"])
+def login(request):
+    if request.user.is_authenticated:
+        return redirect("accounts:dashboard")
+    form = AuthenticationForm(request, data=request.POST if request.method == "POST" else None)
+    next_url = request.POST.get("next", "") if request.method == "POST" else request.GET.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        next_url = ""
+    if request.method == "POST" and form.is_valid():
+        auth_login(request, form.get_user())
+        messages.success(request, "You are now signed in.")
+        return redirect(next_url or "accounts:dashboard")
+    return render(request, "accounts/login.html", {"form": form, "next": next_url})
+
+
+@require_POST
+@login_required
+def logout(request):
+    auth_logout(request)
+    messages.success(request, "You have been signed out.")
+    return redirect("accounts:login")
+
+
+@login_required
+@require_http_methods(["GET", "HEAD"])
+def dashboard(request):
+    return render(request, "accounts/dashboard.html")
 
 
 def forbidden(request, exception=None):

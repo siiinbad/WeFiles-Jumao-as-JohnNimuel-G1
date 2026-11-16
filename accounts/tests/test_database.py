@@ -18,3 +18,12 @@ class RegistrationJourney(TestCase):
         response = self.client.post("/accounts/register/", data)
         self.assertContains(response, "This email address is already in use.")
         self.assertEqual(User.objects.count(), 1)
+
+    def test_login_logout_and_session_protection(self):
+        User.objects.create_user(username="alice", email="alice@example.test", password=PASSWORD)
+        response = self.client.post("/accounts/login/", {"username": "alice", "password": PASSWORD})
+        self.assertRedirects(response, "/accounts/dashboard/")
+        self.assertContains(self.client.get("/accounts/dashboard/"), "Welcome, alice")
+        self.assertRedirects(self.client.post("/accounts/logout/"), "/accounts/login/")
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertRedirects(self.client.get("/accounts/dashboard/"), "/accounts/login/?next=/accounts/dashboard/", fetch_redirect_response=False)
