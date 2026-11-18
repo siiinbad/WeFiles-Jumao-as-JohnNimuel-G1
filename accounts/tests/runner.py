@@ -6,7 +6,7 @@ from django.test.runner import DiscoverRunner
 class ExistingDatabaseRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if os.getenv("TEST_DATABASE_URL") and (not self.keepdb or self.parallel != 1):
+        if ".supabase." in os.getenv("TEST_DATABASE_URL", "") and (not self.keepdb or self.parallel != 1):
             raise ValueError("Use --keepdb --parallel 1 with the disposable Supabase test project.")
 
     def get_databases(self, suite):

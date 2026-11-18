@@ -78,20 +78,36 @@ def dashboard(request):
 @role_required(User.Role.MEMBER)
 @require_http_methods(["GET", "HEAD"])
 def member_dashboard(request):
-    return render(request, "accounts/member_dashboard.html")
+    from vault.models import VaultFile
+
+    return render(
+        request,
+        "accounts/member_dashboard.html",
+        {"vault_file_count": VaultFile.objects.filter(owner=request.user).count()},
+    )
 
 
 @login_required
 @role_required(User.Role.ADMIN)
 @require_http_methods(["GET", "HEAD"])
 def admin_dashboard(request):
+    from vault.models import VaultFile
+
     counts = User.objects.aggregate(
         total=Count("pk"),
         members=Count("pk", filter=Q(role=User.Role.MEMBER)),
         admins=Count("pk", filter=Q(role=User.Role.ADMIN)),
     )
     recent_users = User.objects.order_by("-date_joined", "-pk")[:5]
-    return render(request, "accounts/admin_dashboard.html", {"counts": counts, "recent_users": recent_users})
+    return render(
+        request,
+        "accounts/admin_dashboard.html",
+        {
+            "counts": counts,
+            "recent_users": recent_users,
+            "vault_file_count": VaultFile.objects.count(),
+        },
+    )
 
 
 @login_required

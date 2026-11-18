@@ -1,0 +1,17 @@
+.heading-actions,.form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.narrow-panel{max-width:760px;margin:0 auto}
+.vault-list{padding-left:0;list-style:none}
+.vault-list li{padding:14px 0;border-bottom:1px solid var(--line)}
+.vault-table{width:100%;border-collapse:collapse;text-align:left}
+.vault-table th,.vault-table td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.vault-table th{font-size:13px;color:var(--muted)}
+.vault-table small{display:block;margin-top:5px}
+.vault-description{max-width:560px;overflow-wrap:anywhere}
+.table-wrap{overflow-x:auto}
+.empty-state{text-align:center;padding:38px 16px}
+.breadcrumbs{margin:0 0 20px;font-size:14px}
+.folder-actions{float:right}
+.button.danger{background:#992f29;border-color:#992f29}
+textarea,select{font:inherit;width:100%;padding:11px 12px;border:1px solid #8f9e94;border-radius:7px;color:var(--ink);background:#fff}
+input[type=file]{padding:10px}
+@media(max-width:700px){.vault-table th,.vault-table td{padding:10px 8px}.folder-actions{float:none;display:block;margin-top:10px}.form-actions{align-items:stretch;flex-direction:column}.form-actions .button{width:100%}}

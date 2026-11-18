@@ -5,15 +5,16 @@
   <meta name="color-scheme" content="light">
   <title>{% block title %}WeFiles{% endblock %} · WeFiles</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header"><a class="brand" href="{% url 'home' %}" aria-label="WeFiles home"><span class="brand-mark" aria-hidden="true">W<span>F</span></span>WeFiles</a>
-<nav aria-label="Main navigation">{% block navigation %}{% if user.is_authenticated %}<a href="{% url 'accounts:dashboard' %}">Dashboard</a><a href="{% url 'accounts:profile' %}">My profile</a><form class="nav-form" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="text-button">Sign out</button></form>{% else %}<a href="{% url 'accounts:login' %}">Sign in</a><a href="{% url 'accounts:register' %}">Create account</a>{% endif %}{% endblock %}</nav>
+<nav aria-label="Main navigation">{% block navigation %}{% if user.is_authenticated %}<a href="{% url 'accounts:dashboard' %}">Dashboard</a><a href="{% url 'vault:list' %}">{% if user.role == "admin" %}All files{% else %}My files{% endif %}</a><a href="{% url 'accounts:profile' %}">My profile</a><form class="nav-form" method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="text-button">Sign out</button></form>{% else %}<a href="{% url 'accounts:login' %}">Sign in</a><a href="{% url 'accounts:register' %}">Create account</a>{% endif %}{% endblock %}</nav>
 </header>
 <main id="main" tabindex="-1">
 {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
 {% block content %}{% endblock %}
 </main>
-<footer><span>WeFiles · Your crew, connected.</span><span>Account portal</span></footer>
+<footer><span>WeFiles · Your crew, connected.</span><span>Private file vault</span></footer>
 </body></html>

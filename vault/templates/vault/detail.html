@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/vault.css' %}">{% endblock %}
+{% block title %}{{ file.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if file.folder %}{% url 'vault:folder' file.folder.pk %}{% else %}{% url 'vault:list' %}{% endif %}">← Back to files</a>
+<section class="panel narrow-panel">
+  <p class="eyebrow">FILE DETAILS</p><h1>{{ file.name }}</h1>
+  {% if file.description %}<p class="lead">{{ file.description }}</p>{% endif %}
+  <dl class="account-details">
+    <dt>Uploaded by</dt><dd>{{ file.owner.username }}</dd><dt>Folder</dt><dd>{{ file.folder.name|default:"Vault root" }}</dd>
+    <dt>File size</dt><dd>{{ file.size_bytes|filesizeformat }}</dd><dt>Uploaded</dt><dd>{{ file.created_at|date:"M j, Y, P" }}</dd>
+  </dl>
+  <div class="form-actions"><a class="button" href="{% url 'vault:download' file.pk %}">Download file</a>
+    <a class="button secondary" href="{% url 'vault:edit' file.pk %}">Edit details</a><a class="text-button" href="{% url 'vault:delete' file.pk %}">Delete</a>
+  </div>
+</section>
+{% endblock %}
