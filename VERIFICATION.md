@@ -1,14 +1,52 @@
-# Verification record
+# Verification record - Increment 2, in progress
 
-Prepared on 2026-11-16. No real credentials or database were available.
+Verified on 2026-11-18. Supabase and Render remain unconfigured.
 
-- 23 database-independent Django checks passed for registration validation, password hashing, sessions, CSRF, redirect safety, role authorization and profile ownership/field restrictions. Authentication and uniqueness calls are mocked where they need PostgreSQL; this does not verify live login or persistence.
-- Django system checks passed. Migration files were generated and model/migration drift checked offline; database migration history could not be validated.
-- Production static collection passed. Production deployment checks reported only the two optional HSTS subdomain/preload warnings documented in README.
-- Production Django HTTP checks returned 200 for home, registration, login and their hashed stylesheet, with HSTS headers. HTTP redirects to HTTPS and anonymous profile access redirects to login.
-- Replayed all four patches in a disposable repository. Each feature snapshot passed its applicable offline checks (6, 11, 17 and 23 tests). The commit helper created exactly four commits using a synthetic identity only in a disposable test repository; the final committed tree matched the app source. The actual submission repository has no commits or invented identity.
-- A separate integration test suite covers registration persistence, duplicate email rejection, real login/logout, role enforcement, profile persistence and attempted privilege/ownership changes. It must still run against a disposable Supabase test project, using the README command. Nothing falls back to SQLite.
-- Browser access was unavailable. Responsive styles and accessible form markup are included; desktop/mobile and keyboard acceptance must still be checked in a browser.
-- No deployment, remote repository creation or push was performed. Git identity is supplied by the user; four sequential feature patches are supplied separately.
+## Passed in this workspace
 
-Run the README submission walkthrough against real Supabase before demonstrating the app. The operator must configure a public repository and Render environment before deployment.
+- **53 Django tests passed against a temporary local PostgreSQL 17 database**,
+  with no skips. All migrations were applied to a fresh test database and the
+  test database was destroyed afterward. The isolated loopback PostgreSQL server
+  was stopped. App credentials or the reference WeFiles database were not used.
+- The suite includes existing registration persistence/uniqueness, real session
+  login/logout, role dashboards, profile persistence and attempted privilege
+  changes. Vault journeys cover member file/folder CRUD, nested folders, download
+  contents, folder moves, owner isolation, admin cross-owner access, validation,
+  delete confirmation, storage failure handling and deletion retries.
+- Database-independent checks verify CSRF, authentication redirects, private
+  caching, storage configuration, safe provider errors, no storage URL generation,
+  health-check responses and read-only maintenance behavior.
+- Django system checks passed. `makemigrations --check --dry-run` reported no
+  model/migration drift; the earlier offline run could not inspect a database's
+  history, and the full PostgreSQL run then applied all migrations successfully.
+- Production deployment checks passed at ERROR level with placeholder cloud
+  settings. Only optional HSTS subdomain/preload warnings W005/W021 remain;
+  these domain-wide policies are intentionally not enabled automatically.
+- Production WhiteNoise collection copied 129 static files and post-processed
+  assets. HTTPS page checks passed for home/registration/login and hashed vault
+  CSS; HTTP redirects to HTTPS, HSTS is present, and anonymous vault access
+  redirects to login with private/no-store cache headers.
+- `bash -n build.sh start.sh` passed. `pip check` found no broken dependencies.
+- The supplied DOCX report template was retrieved and retained. Generated draft
+  DOCX/PDF keep all six numbered sections, all subsections and eleven tables.
+  Automated assertions check required section headings and unfilled placeholders.
+
+## Limits and remaining acceptance
+
+- File bytes in automated journey tests use temporary local storage. S3
+  configuration/error behavior is tested with mocks. **No live Supabase
+  PostgreSQL connection or private bucket upload/download/delete was verified.**
+- PostgreSQL tests use Django's HTTP client and templates, not an interactive
+  browser. Desktop/mobile layout, keyboard interaction, screenshots and a
+  complete browser demonstration remain pending.
+- Render startup/Gunicorn were not executed on a Linux Render host. No Blueprint
+  or service was created, no deployment was triggered, and no hosted URL exists.
+- GitHub Actions is prepared but has not run remotely. No remote was configured
+  for this independent increment history, no push or PR was made, and no merge
+  into main/develop was performed. Local feature commits are preparation only.
+- The report remains an unsigned draft. Confirm student name/section, populate
+  real demo accounts and screenshots, record actual merged PR links, and export
+  the required final filename before submission.
+
+See README.md for repeatable tests and docs/SETUP.md for the separate disposable
+Supabase test-project safety requirements and manual acceptance steps.

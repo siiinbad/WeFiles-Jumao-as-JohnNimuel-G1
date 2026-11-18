@@ -7,7 +7,7 @@ class PrivateResponseMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if request.path.startswith(("/accounts/", "/maintenance/")):
+        if request.path.startswith(("/accounts/", "/maintenance/", "/vault/")):
             patch_cache_control(response, private=True, no_store=True)
             response["X-Robots-Tag"] = "noindex, nofollow"
         return response

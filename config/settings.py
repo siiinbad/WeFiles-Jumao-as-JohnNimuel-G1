@@ -4,16 +4,16 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
-from .environment import database_config
+from .environment import database_config, private_storage_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env", override=False)
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 if len(SECRET_KEY) < 50:
     raise ImproperlyConfigured("Set SECRET_KEY to a random value of at least 50 characters.")
-debug_value = os.getenv("DEBUG", "False").lower()
+debug_value = os.getenv("DJANGO_DEBUG", "False").lower()
 if debug_value not in {"true", "false"}:
-    raise ImproperlyConfigured("DEBUG must be True or False.")
+    raise ImproperlyConfigured("DJANGO_DEBUG must be True or False.")
 DEBUG = debug_value == "true"
 if os.getenv("RENDER_EXTERNAL_HOSTNAME") and DEBUG:
     raise ImproperlyConfigured("DEBUG must be False on Render.")
@@ -28,7 +28,7 @@ DATABASES = {"default": database_config(os.getenv("DATABASE_URL", ""))}
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
-    "accounts",
+    "accounts", "vault",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -67,7 +67,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STORAGES = {"staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}}
+STORAGES = {
+    "default": private_storage_config(os.environ, debug=DEBUG),
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+MEDIA_ROOT = Path(os.getenv("PRIVATE_MEDIA_ROOT", BASE_DIR / "media"))
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024
+DATA_UPLOAD_MAX_NUMBER_FILES = 1
 LOGIN_URL = "accounts:login"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

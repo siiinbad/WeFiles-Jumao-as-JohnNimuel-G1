@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/vault.css' %}">{% endblock %}
+{% block title %}Delete {{ item_type }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if item_type == 'file' %}{% url 'vault:detail' object.pk %}{% else %}{% url 'vault:list' %}{% endif %}">← Cancel</a>
+<section class="panel narrow-panel">
+  <p class="eyebrow">CONFIRM DELETION</p><h1>Delete {{ object.name }}?</h1>
+  {% if item_type == "folder" %}<p class="muted">Only empty folders can be deleted. Move or delete its contents first.</p>{% else %}<p class="muted">The file will be removed from your vault.</p>{% endif %}
+  <form method="post">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="button danger" type="submit">Delete {{ item_type }}</button></form>
+</section>
+{% endblock %}

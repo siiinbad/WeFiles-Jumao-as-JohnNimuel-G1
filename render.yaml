@@ -1,15 +1,31 @@
+# Prepared only: creating a Blueprint still triggers an initial deployment.
 services:
   - type: web
-    name: wefiles-accounts
+    name: wefiles-increment
     runtime: python
+    branch: main
+    autoDeployTrigger: "off"
     buildCommand: bash build.sh
-    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --access-logfile - --access-logformat '%(m)s %(s)s %(L)s'
+    startCommand: bash start.sh
+    healthCheckPath: /health/
     envVars:
       - key: SECRET_KEY
-        sync: false
+        generateValue: true
       - key: DATABASE_URL
         sync: false
-      - key: DEBUG
+      - key: DJANGO_DEBUG
         value: "False"
       - key: TRUST_PROXY
         value: "True"
+      - key: PRIVATE_STORAGE_BACKEND
+        value: supabase
+      - key: SUPABASE_S3_ENDPOINT_URL
+        sync: false
+      - key: SUPABASE_S3_REGION
+        sync: false
+      - key: SUPABASE_S3_ACCESS_KEY_ID
+        sync: false
+      - key: SUPABASE_S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false

@@ -38,6 +38,8 @@ class RoleChecks(SimpleTestCase):
         self.assertEqual(form.instance.role, User.Role.MEMBER)
 
     def test_member_dashboard_contains_member_content(self):
-        response = views.member_dashboard(self.request_for(User.Role.MEMBER))
+        with patch("vault.models.VaultFile.objects.filter") as files:
+            files.return_value.count.return_value = 0
+            response = views.member_dashboard(self.request_for(User.Role.MEMBER))
         self.assertContains(response, "Member workspace")
         self.assertNotContains(response, "Recently joined")

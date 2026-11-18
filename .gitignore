@@ -1,5 +1,6 @@
 .env
 .env.*
+!.env.example
 venv/
 .venv/
 __pycache__/
@@ -10,3 +11,6 @@ media/
 .coverage
 htmlcov/
 .pytest_cache/
+
+.tools/
+.test-artifacts/
