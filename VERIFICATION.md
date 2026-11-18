@@ -45,8 +45,8 @@ Verified on 2026-11-18. Supabase and Render remain unconfigured.
 - Render startup/Gunicorn were not executed on a Linux Render host. No Blueprint
   or service was created, no deployment was triggered, and no hosted URL exists.
 - The repository now has a public GitHub origin. This setup feature does not
-  perform a release merge or Render deployment. The new Compose startup CI job
-  still needs its first remote run.
+  perform a release merge or Render deployment. Both setup CI jobs passed on
+  commit 4592fc8: postgres-tests and fresh-clone-setup (run 44279360695).
 - The report remains an unsigned draft. Confirm student name/section, populate
   real demo accounts and screenshots, record actual merged PR links, and export
   the required final filename before submission.
@@ -78,7 +78,8 @@ preserved the complete .env when run again.
 - All 8 setup-helper regression tests passed.
 - The official checksum-verified Docker Compose CLI accepted compose.yaml with
   the generated .env. Docker Engine is not installed on this host, so container
-  startup is covered by the new fresh-clone-setup GitHub Actions job.
+  startup was verified by the passing fresh-clone-setup GitHub Actions job on
+  Ubuntu, including environment generation, Compose health, migrations and checks.
 - Provided native PostgreSQL 17 as an external prerequisite using exactly the
   clone's generated database/login/password/port. Migrations, Django database
   checks, static collection and pip dependency checks passed.
@@ -94,3 +95,7 @@ preserved the complete .env when run again.
 
 Live Supabase storage, hosted Render acceptance and the final report submission
 remain pending. This verification introduces no SQLite fallback.
+
+Published feature/local-setup and verified a public clone with credential helpers
+disabled. Passing CI for the verified setup code:
+https://github.com/siiinbad/WeFiles-Jumao-as-Jumao-as-G1/actions/runs/44279360695
