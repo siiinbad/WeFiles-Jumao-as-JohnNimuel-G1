@@ -33,6 +33,11 @@ Registration, login/POST logout, Admin/Member dashboards and own profile editing
 remain included. New registrations cannot select privileges. Workspace Admin
 roles are separate from Django maintenance staff permissions.
 
+The interface uses the original WeFiles logo, sidebar, design tokens, responsive
+file tables, account cards and theme controls. See [UI reference](docs/UI_REFERENCE.md)
+for the source assets and adapted screens. Workspace search and dashboard
+statistics respect the same owner/Admin access rules.
+
 ## Local setup
 
 Use the Python version in `.python-version`. In PowerShell, inside this folder:

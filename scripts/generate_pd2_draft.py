@@ -38,7 +38,7 @@ def main():
         "[Step 2]": "2. Create a folder/subfolder, upload a file, open its details and download it.",
         "[Step 3]": "3. Edit its name/description/location; confirm deletion, then delete empty folders. Admin uses All files for cross-account management.",
         "[Screenshot 1 \u2013 caption]": "Pending screenshot 1: member dashboard, nested folders, upload and file detail/download. Capture from the running app after Supabase setup; do not present mockups as evidence.",
-        "[Screenshot 2 \u2013 caption]": "Pending screenshot 2: validation error, edit/delete confirmation and Admin All files. Desktop/mobile and keyboard browser acceptance remain pending.",
+        "[Screenshot 2 \u2013 caption]": "Pending screenshot 2: validation error, edit/delete confirmation and Admin All files. Local Chrome desktop/mobile, theme, keyboard and core-flow acceptance passed; final hosted screenshots remain pending.",
         "[Firstname Lastname]": "Pending student name - unsigned draft",
         "[MM/DD/YYYY]": "Pending submission date (draft prepared 11/18/2026)",
     }
@@ -107,6 +107,10 @@ def main():
         ["Branch", "Merged Into", "Pull Request Link", "What it contains"],
         ["feature/private-file-vault", "Pending -> develop", "Pending - no remote PR created", "Owner-linked vault CRUD, account integration, validation, private storage and PostgreSQL tests"],
         ["feature/render-deployment", "Pending -> develop", "Pending - no remote PR created", "Render build/start/health setup, CI, environment guide and draft report"],
+        ["feature/vault-search", "Pending -> develop", "Pending - no remote PR created", "Owner-scoped file/folder search form, queries and search regression tests; commit 22e04f5"],
+        ["feature/wefiles-ui", "Pending -> develop", "Pending - no remote PR created", "WeFiles branding, themes, screens and role dashboard summaries; commit c5e2b6a"],
+        ["feature/pd2-documentation", "Pending -> develop", "Pending - no remote PR created", "Implementation notes, verification, feature branch evidence and the draft report"],
+        ["feature/reference-ui", "Preserved checkpoint", "Not a separate active PR", "Original combined UI checkpoint retained; active work is split into search, UI and documentation branches"],
         ["develop", "Pending -> main", "Pending - intentionally not released", "Increment release after acceptance; main and develop remain at the account baseline"],
     ])
     fill_table(tables[8], [
@@ -121,7 +125,7 @@ def main():
         ["Issue ID", "Description", "Steps to Reproduce", "Severity", "Status / Workaround"],
         ["ISS-01", "Supabase environment is not set up; hosted persistence/storage not verified.", "Start production without database/S3 environment values.", "Critical", "Open - configure cloud resources; local PostgreSQL tests pass."],
         ["ISS-02", "Required public repository name, merged PR evidence and Render URL are unavailable.", "Inspect the increment checkout: independent local history and no remote.", "Major", "Open - reconcile with existing WeFiles repository; do not overwrite history."],
-        ["ISS-03", "Browser/mobile screenshots and final identity/test-account information pending.", "Review Screenshots, Project Information and Test Accounts sections.", "Major", "Open - keep report unsigned and clearly marked draft."],
+        ["ISS-03", "Final hosted screenshots and identity/test-account information pending.", "Review Screenshots, Project Information and Test Accounts sections.", "Major", "Open - keep report unsigned and clearly marked draft."],
         ["ISS-04", "Existing source database/legacy Supabase SQL cannot be reused directly.", "Compare increment User/migrations with reference WeFiles schema.", "Major", "Use a new increment DB; plan a migration separately if preserving old user data."],
     ])
     fill_table(tables[10], [
