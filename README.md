@@ -33,7 +33,52 @@ Registration, login/POST logout, Admin/Member dashboards and own profile editing
 remain included. New registrations cannot select privileges. Workspace Admin
 roles are separate from Django maintenance staff permissions.
 
-## Local setup
+The interface uses the original WeFiles logo, sidebar, design tokens, responsive
+file tables, account cards and theme controls. See [UI reference](docs/UI_REFERENCE.md)
+for the source assets and adapted screens. Workspace search and dashboard
+statistics respect the same owner/Admin access rules.
+
+## Run this prepared checkout (PowerShell)
+
+This checkout already has a virtual environment and local PostgreSQL under
+`.venv/` and `.tools/`. Use the commands below to run before Supabase is
+configured. These ignored local tools are not included in a fresh Git clone;
+for a new checkout, follow the setup section below.
+
+Open PowerShell and run:
+
+```powershell
+cd C:\Users\L13X16W25\production\wefiles-increment
+
+# Start PostgreSQL; skip this command if it is already running.
+& .\.tools\postgres-bin\package\native\bin\pg_ctl.exe -D .\.tools\pgdata -l .\.tools\postgres.log -o "-h 127.0.0.1 -p 55439" -w start
+
+# Configure this terminal session.
+$env:SECRET_KEY = & .\.venv\Scripts\python.exe -c "import secrets; print(secrets.token_urlsafe(64))"
+$env:DJANGO_DEBUG = "True"
+$env:PRIVATE_STORAGE_BACKEND = "local"
+$env:DATABASE_URL = "postgresql://wefiles_test:local-disposable-only@127.0.0.1:55439/wefiles_acceptance"
+
+# Apply migrations and start Django.
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py runserver
+```
+
+Open **http://127.0.0.1:8000/**, create an account, and sign in. Keep the terminal
+open while using the app. These environment settings apply only to that terminal
+session; repeat them when opening a new terminal. No virtual environment
+activation or `.env` copy is needed for this prepared-checkout flow.
+
+Press **Ctrl+C** to stop Django. To stop PostgreSQL afterward:
+
+```powershell
+& .\.tools\postgres-bin\package\native\bin\pg_ctl.exe -D .\.tools\pgdata -w stop
+```
+
+The database login above is for this local development instance only. Supabase
+and Render remain unconfigured.
+
+## Local setup for a fresh checkout
 
 Use the Python version in `.python-version`. In PowerShell, inside this folder:
 
@@ -55,7 +100,7 @@ python -c "import secrets; print(secrets.token_urlsafe(64))"
 5. Register and sign in at `/accounts/register/`. For an administrator, register
    another account then run `python manage.py promote_workspace_admin USERNAME`.
 
-No credentials or real accounts are bundled. `.env`, private uploads, test tools
+No production credentials or real accounts are bundled. `.env`, private uploads, test tools
 and virtual environments are ignored. Do not serve `media/` through public URLs.
 
 ## Tests

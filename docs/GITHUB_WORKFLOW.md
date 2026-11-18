@@ -1,52 +1,50 @@
 # GitHub workflow - preparation only
 
-The existing account commits are retained. The increment checkout originally had
-only a local `master` branch and no remote. The reference `../WeFiles/` checkout
-uses `https://github.com/siiinbad/WeFiles` and has a separate history. No push,
-remote creation, visibility change, release merge or fabricated PR is performed.
+The account baseline and every existing branch are retained. main and develop
+remain at f57997f while the increment is in progress. No remote, push, pull
+request or release merge has been created by this local reorganization.
 
-Local preparation creates `main` at the existing account baseline and `develop`
-from `main`, with feature branches for the private vault and Render preparation.
-The Render branch depends on the vault branch and is advanced to that feature's
-commit before deployment changes are committed. `main` and `develop` stay at the
-baseline while this increment remains in progress. The legacy `master` reference
-is retained. These local branches do not satisfy the merged-PR requirement yet.
+## Separate feature branches and commits
+
+| Feature | Branch | Feature commit |
+| --- | --- | --- |
+| Private vault CRUD and ownership | feature/private-file-vault | c87ac0f |
+| Render deployment preparation | feature/render-deployment | 3ef0f48 |
+| File and folder search | feature/vault-search | 22e04f5 |
+| WeFiles UI and role dashboard summaries | feature/wefiles-ui | c5e2b6a |
+| PD2 implementation documentation and draft report | feature/pd2-documentation | See this branch's latest commit |
+
+The new branches are created from develop and fast-forwarded to their required
+feature dependency before committing their own feature. The dependency order is:
+private-file-vault -> render-deployment -> vault-search -> wefiles-ui ->
+pd2-documentation. Each branch has its own feature commit; upstream commits are
+shared prerequisites. No dependency was merged into develop or main locally.
+
+feature/reference-ui is preserved at fc78926 as the original combined UI
+checkpoint. Its content has been separated into the active search, UI and
+documentation branches above. Keep this checkpoint; use the separated branches
+for future PRs rather than submitting the old combined branch again.
 
 ## Required remote workflow
 
-1. Reconcile this work with the **same existing repository**; retain its history.
-   If the instructor requires a rename, use the actual name/section:
-   `WeFiles-Lastname-Firstname-Section`. Verify public visibility. Do not force-push
-   this independent local history over the reference repository.
-2. Establish/protect `main` and `develop` on that repository. Require PRs for main;
-   no direct commits. Ensure auto-deletion of merged feature branches is disabled.
-3. Push `feature/private-file-vault`; open a PR into `develop`, run the PostgreSQL
-   CI checks, review and merge while retaining the feature branch.
-4. Push `feature/render-deployment`; after the vault PR is merged, open/rebase its
-   PR into `develop` so the remaining diff covers Render/docs. Run checks, review
-   and merge; retain this branch too.
-5. When the increment is accepted, open **develop - main**, run checks and merge.
-   This is deliberately pending while the user has asked to keep work unfinished.
-6. Record the two merged feature PR URLs and the merged release PR URL in every
-   Branches and Pull Requests row of the supplied report. Use actual links only.
-
-## Suggested PR descriptions
-
-`Add the private file vault`: Members can organize, upload, download, edit and
-confirm deletion of their own files/folders. Admins can manage records across
-owners. Validated destinations, folder rules, authenticated private downloads
-and retryable storage cleanup enforce the flow. Include exact test results and
-state that live Supabase acceptance remains pending.
-
-`Prepare Supabase Storage and Render deployment`: Configure private durable
-upload storage, build/start commands, database health checks and environment
-setup. Keep deployment manual and preserve a draft of every report section.
-Include exact checks and the remaining cloud setup.
+1. Reconcile with the same existing repository and retain its history. The
+   reference ../WeFiles/ checkout uses https://github.com/siiinbad/WeFiles and
+   has an independent history. Do not force-push this checkout over it.
+2. Confirm the required public name WeFiles-Lastname-Firstname-Section, protect
+   main/develop and disable automatic deletion of merged feature branches.
+3. Push each active feature branch. Open a separate PR into develop for each
+   feature, in dependency order, and run its checks before merging. Keep branches.
+   After merging a prerequisite, verify that the next PR shows only its feature.
+4. When the increment is accepted, open develop -> main, run checks and merge.
+   This release remains pending while the increment is intentionally unfinished.
+5. Record actual merged PR links in the report. The minimum remains two merged
+   feature PRs into develop and one merged develop-to-main PR. Local branch refs
+   and commits do not replace real merged GitHub PRs.
 
 ## Submission evidence still needed
 
-- Public URL with the required repository name and preserved history.
-- Two merged feature PRs into develop, one merged develop-to-main PR.
-- Supabase-backed browser acceptance with one real test account per role.
-- Labeled flow/error screenshots and final student/section details.
-- Final `docs/WeFiles-Lastname-Firstname-Section-PD2.pdf` and its commit.
+- Same public repository with the required final name and preserved history.
+- Merged feature and release PR URLs; keep all feature branches.
+- Live Supabase database/private storage and hosted Render acceptance.
+- Final student/section details, labeled screenshots and working test accounts.
+- Signed final docs/WeFiles-Lastname-Firstname-Section-PD2.pdf and its commit.

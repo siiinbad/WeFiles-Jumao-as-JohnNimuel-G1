@@ -13,7 +13,7 @@ email verification and membership approval are outside this selected increment.
 
 | Requirement | Implementation/evidence | Status |
 | --- | --- | --- |
-| End-to-end core UI | My files/All files - folder - upload - details/download - edit/move - confirmed delete | Implemented; hosted/browser acceptance pending |
+| End-to-end core UI | My files/All files - folder - upload - details/download - edit/move - confirmed delete | Implemented; local Chrome acceptance passed, hosted checks pending |
 | Persistence | PostgreSQL ORM and migrations; private Supabase S3 bytes in production | Prepared; live Supabase pending |
 | CRUD | vault/views.py, forms.py, services.py, templates | Implemented |
 | Validation/messages | Required inputs, size/name/description limits, destination ownership, folder uniqueness/cycles/depth, empty-folder deletion | Implemented with tests |
@@ -27,7 +27,7 @@ email verification and membership approval are outside this selected increment.
 | Render | Build/start/Blueprint/health, private storage settings, automatic deploys off | Prepared only |
 | Secrets/dependencies/setup | .gitignore, .env.example, requirements.txt, README | Updated |
 | Same public repository and required name | Existing WeFiles remote identified in reference checkout; increment has no remote | Pending reconciliation; no history overwritten |
-| Required branches/merged PRs | main/develop baseline and two local feature branches; workflow document | Local preparation; 2 feature?develop and 1 develop?main merged PRs pending |
+| Required branches/merged PRs | main/develop baseline; separate vault, deployment, search, UI and documentation feature commits; workflow document | Local preparation; 2 feature -> develop and 1 develop -> main merged PRs pending |
 | Completion report PDF in docs | Original template retained; draft DOCX/PDF preserves all sections | Draft only; identity, screenshots, accounts, PRs and final filename pending |
 
 ## Relationships
@@ -43,3 +43,6 @@ email verification and membership approval are outside this selected increment.
 
 Do not mark the increment complete until the hosted checks, real GitHub PR
 workflow and final report evidence are recorded.
+
+The UI is now adapted from the original WeFiles shell, account screens and vault
+components. See UI_REFERENCE.md for provenance and local browser verification.
