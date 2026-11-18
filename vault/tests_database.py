@@ -202,3 +202,18 @@ class VaultJourneyTests(TestCase):
         VaultFile.objects.create(owner=self.owner, name="root-guide.txt", blob="objects/search-only", size_bytes=12)
         response = self.client.get(reverse("vault:folder", args=[folder.pk]), {"q": "guide"})
         self.assertEqual(list(response.context["files"]), [inside])
+
+    def test_overview_storage_folders_and_recent_files_follow_ownership(self):
+        own_folder = Folder.objects.create(owner=self.owner, name="Own")
+        file = self.upload(own_folder)
+        Folder.objects.create(owner=self.other, name="Other")
+        other_file = VaultFile.objects.create(owner=self.other, name="other-secret.txt", blob="objects/stats-only", size_bytes=1024)
+        response = self.client.get(reverse("accounts:member_dashboard"))
+        self.assertEqual(response.context["storage_bytes"], file.size_bytes)
+        self.assertEqual(response.context["folder_count"], 1)
+        self.assertEqual(list(response.context["recent_files"]), [file])
+        self.assertNotContains(response, other_file.name)
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("accounts:admin_dashboard"))
+        self.assertEqual(response.context["storage_bytes"], file.size_bytes + 1024)
+        self.assertEqual(response.context["folder_count"], 2)
