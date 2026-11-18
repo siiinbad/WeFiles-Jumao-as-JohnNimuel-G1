@@ -169,25 +169,30 @@ configuration. Local startup does not create or deploy cloud resources.
 
 ## Tests
 
-Database-independent checks need no `.env` or Supabase project:
+Run the setup helper regression checks and database-independent Django checks
+from the repository root (PowerShell):
 
 ```powershell
-python manage.py test accounts.tests.test_registration accounts.tests.test_sessions accounts.tests.test_roles accounts.tests.test_profiles vault.tests vault.tests_deployment --settings=config.test_settings
-python manage.py check --settings=config.test_settings
+.\.venv\Scripts\python.exe -m unittest discover -s scripts -p test_configure_local.py
+.\.venv\Scripts\python.exe manage.py test accounts.tests.test_registration accounts.tests.test_sessions accounts.tests.test_roles accounts.tests.test_profiles vault.tests vault.tests_deployment --settings=config.test_settings
+.\.venv\Scripts\python.exe manage.py check --settings=config.test_settings
 ```
 
+On macOS/Linux, use `.venv/bin/python` for the same commands.
+
 For the complete journey suite, set `TEST_DATABASE_URL` to a separate disposable
-PostgreSQL database. Local PostgreSQL tests create/drop a `test_` database, so
-its login needs `CREATEDB`. Never use production credentials for tests.
+PostgreSQL database/login you created. Local tests create/drop a `test_` database,
+so the test login needs `CREATEDB`. Substitute your test connection below:
 
 ```powershell
-$env:TEST_DATABASE_URL = 'postgresql://test_user:TEST_PASSWORD@127.0.0.1:5432/wefiles_test'
-python manage.py test --settings=config.test_settings --parallel 1
+$env:TEST_DATABASE_URL = 'postgresql://test_user:URL_ENCODED_TEST_PASSWORD@127.0.0.1:5432/wefiles_test'
+.\.venv\Scripts\python.exe manage.py test --settings=config.test_settings --parallel 1
 ```
 
 For a disposable Supabase test project, see [SETUP](docs/SETUP.md): its test
 runner reuses and flushes that project's tables and requires explicit opt-in.
-GitHub Actions is prepared with an isolated PostgreSQL service.
+GitHub Actions runs the suite with isolated PostgreSQL and separately exercises
+the generated `.env`, Compose startup and migrations from a clean checkout.
 
 ## Render preparation
 
