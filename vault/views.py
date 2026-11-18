@@ -4,6 +4,7 @@ import uuid
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
@@ -12,19 +13,10 @@ from accounts.models import User
 
 from .forms import FileForm, FolderForm, UploadForm
 from .models import Folder, VaultFile
+from .selectors import visible_files, visible_folders
 from .services import delete_file, delete_folder, save_folder, update_file, upload_file
 
 logger = logging.getLogger(__name__)
-
-
-def visible_files(user):
-    files = VaultFile.objects.select_related("owner", "folder")
-    return files if user.role == User.Role.ADMIN else files.filter(owner=user)
-
-
-def visible_folders(user):
-    folders = Folder.objects.select_related("owner", "parent")
-    return folders if user.role == User.Role.ADMIN else folders.filter(owner=user)
 
 
 def resolve_uuid(value):
@@ -39,9 +31,24 @@ def file_list(request, folder_id=None):
     folder = None
     if folder_id:
         folder = get_object_or_404(visible_folders(request.user), pk=resolve_uuid(folder_id))
-    files = visible_files(request.user).filter(folder=folder)
-    folders = visible_folders(request.user).filter(parent=folder)
-    return render(request, "vault/list.html", {"files": files, "folders": folders, "folder": folder})
+    query = request.GET.get("q", "").strip()[:100]
+    files = visible_files(request.user)
+    folders = visible_folders(request.user)
+    if folder or not query:
+        files = files.filter(folder=folder)
+        folders = folders.filter(parent=folder)
+    if query:
+        files = files.filter(Q(name__icontains=query) | Q(description__icontains=query))
+        folders = folders.filter(name__icontains=query)
+    breadcrumbs = []
+    ancestor = folder
+    while ancestor:
+        breadcrumbs.insert(0, ancestor)
+        ancestor = ancestor.parent
+    return render(request, "vault/list.html", {
+        "files": files, "folders": folders, "folder": folder,
+        "query": query, "breadcrumbs": breadcrumbs,
+    })
 
 
 @require_http_methods(["GET", "POST"])

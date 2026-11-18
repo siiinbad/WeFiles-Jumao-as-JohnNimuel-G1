@@ -17,6 +17,10 @@
   {% if user.role == "admin" or folder.owner_id == user.pk %}<span class="folder-actions"><a href="{% url 'vault:folder_edit' folder.pk %}">Edit folder</a> · <a href="{% url 'vault:folder_delete' folder.pk %}">Delete folder</a></span>{% endif %}
 </nav>{% endif %}
 {% if folder and folder.owner_id != user.pk %}<p class="status-note">This folder belongs to {{ folder.owner.username }}. You can review its files, but only its owner can add new files or folders here.</p>{% endif %}
+<form class="panel section" method="get" role="search" aria-label="Search files">
+  <div class="field"><label for="file-search">Search files by name or description</label><input id="file-search" type="search" name="q" maxlength="100" value="{{ query }}" placeholder="Search files"></div>
+  <div class="heading-actions"><button class="button" type="submit">Search</button>{% if query %}<a href="{{ request.path }}">Clear search</a>{% endif %}</div>
+</form>
 {% if folders %}<section class="panel section"><h2>Folders</h2><ul class="vault-list">{% for item in folders %}<li><a href="{% url 'vault:folder' item.pk %}"><strong>Folder: {{ item.name }}</strong></a>{% if user.role == "admin" %}<span class="muted"> · {{ item.owner.username }}</span>{% endif %}<span class="muted"> · <a href="{% url 'vault:folder_edit' item.pk %}">Edit</a></span></li>{% endfor %}</ul></section>{% endif %}
 <section class="panel section"><div class="page-heading"><h2>Files <span class="badge">{{ files|length }}</span></h2></div>
   {% if files %}<div class="table-wrap"><table class="vault-table"><thead><tr><th>File</th>{% if user.role == "admin" %}<th>Owner</th>{% endif %}<th>Size</th><th>Uploaded</th></tr></thead><tbody>

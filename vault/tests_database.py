@@ -183,3 +183,22 @@ class VaultJourneyTests(TestCase):
         self.assertEqual(self.client.get(reverse("accounts:member_dashboard")).context["vault_file_count"], 0)
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse("accounts:admin_dashboard")).context["vault_file_count"], 1)
+
+    def test_search_finds_nested_files_without_exposing_another_owner(self):
+        folder = Folder.objects.create(owner=self.owner, name="Reference guides")
+        file = self.upload(folder)
+        other_file = VaultFile.objects.create(owner=self.other, name="private-guide.txt", description="A useful guide", blob="objects/search-only", size_bytes=10)
+        response = self.client.get(reverse("vault:list"), {"q": " useful "})
+        self.assertEqual(list(response.context["files"]), [file])
+        self.assertEqual(response.context["query"], "useful")
+        self.assertNotContains(response, other_file.name)
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("vault:list"), {"q": "useful"})
+        self.assertEqual(set(response.context["files"].values_list("pk", flat=True)), {file.pk, other_file.pk})
+
+    def test_folder_search_stays_in_the_open_folder(self):
+        folder = Folder.objects.create(owner=self.owner, name="Guides")
+        inside = self.upload(folder)
+        VaultFile.objects.create(owner=self.owner, name="root-guide.txt", blob="objects/search-only", size_bytes=12)
+        response = self.client.get(reverse("vault:folder", args=[folder.pk]), {"q": "guide"})
+        self.assertEqual(list(response.context["files"]), [inside])
