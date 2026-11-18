@@ -1,17 +1,28 @@
-.heading-actions,.form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.narrow-panel{max-width:760px;margin:0 auto}
-.vault-list{padding-left:0;list-style:none}
-.vault-list li{padding:14px 0;border-bottom:1px solid var(--line)}
-.vault-table{width:100%;border-collapse:collapse;text-align:left}
-.vault-table th,.vault-table td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-.vault-table th{font-size:13px;color:var(--muted)}
-.vault-table small{display:block;margin-top:5px}
-.vault-description{max-width:560px;overflow-wrap:anywhere}
-.table-wrap{overflow-x:auto}
-.empty-state{text-align:center;padding:38px 16px}
-.breadcrumbs{margin:0 0 20px;font-size:14px}
-.folder-actions{float:right}
-.button.danger{background:#992f29;border-color:#992f29}
-textarea,select{font:inherit;width:100%;padding:11px 12px;border:1px solid #8f9e94;border-radius:7px;color:var(--ink);background:#fff}
-input[type=file]{padding:10px}
-@media(max-width:700px){.vault-table th,.vault-table td{padding:10px 8px}.folder-actions{float:none;display:block;margin-top:10px}.form-actions{align-items:stretch;flex-direction:column}.form-actions .button{width:100%}}
+/* Increment-specific adaptations of the shared WeFiles design system. */
+.owner-person { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.avatar-xs { width: 26px; height: 26px; font-size: 9px; }
+.profile-shortcut { text-decoration: none; }
+.stat-card strong.stat-role { font-size: 25px; letter-spacing: -.8px; }
+.workspace-action { display: flex; align-items: flex-start; gap: 14px; padding: 20px 22px; border-top: 1px solid var(--line); }
+.workspace-action > div { min-width: 0; }
+.workspace-action strong { display: block; font-size: 12px; margin-bottom: 5px; }
+.workspace-action p, .workspace-summary p { font-size: 12px; }
+.workspace-action .text-link { margin-top: 12px; }
+.workspace-summary { padding: 18px 22px; border-top: 1px solid var(--line); }
+.workspace-summary > .text-link { margin-top: 10px; }
+.profile-description { font-size: 12px; margin: 12px 0 20px; }
+.folder-label { min-width: 0; flex: 1; }
+.folder-label strong { display: block; }
+.folder-label small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+.table-note { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); }
+.table-note .icon { width: 13px; height: 13px; }
+.file-icon-large { border: 1px solid var(--line); background: var(--tint); color: var(--primary); }
+.welcome-card { max-width: 550px; margin-top: 35px; }
+.welcome-card h1 { font-size: 42px; line-height: 1.2; }
+.welcome-card .eyebrow { margin-bottom: 12px; }
+.welcome-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.welcome-card > p.welcome-note { display: flex; align-items: center; gap: 7px; margin: 25px 0 0; font-size: 11px; }
+.welcome-note .icon { width: 14px; height: 14px; }
+[data-bs-theme="dark"] .status-emblem.danger { background: #40242a; color: var(--danger); }
+@media (max-width: 767px) { .stat-card strong.stat-role { font-size: 23px; } .public-header { gap: 16px; } .public-header > div { gap: 12px; } }
+@media (max-width: 540px) { .public-header .brand { font-size: 23px; } .public-header > div > a { font-size: 11px; } .table-note { display: none; } .detail-list > div { align-items: flex-start; } .detail-list dd { max-width: 65%; } .welcome-card h1 { font-size: 35px; } }

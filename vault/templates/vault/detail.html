@@ -1,18 +1,3 @@
-{% extends "base.html" %}
-{% load static %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/vault.css' %}">{% endblock %}
-{% block title %}{{ file.name }}{% endblock %}
-{% block content %}
-<a class="back-link" href="{% if file.folder %}{% url 'vault:folder' file.folder.pk %}{% else %}{% url 'vault:list' %}{% endif %}">← Back to files</a>
-<section class="panel narrow-panel">
-  <p class="eyebrow">FILE DETAILS</p><h1>{{ file.name }}</h1>
-  {% if file.description %}<p class="lead">{{ file.description }}</p>{% endif %}
-  <dl class="account-details">
-    <dt>Uploaded by</dt><dd>{{ file.owner.username }}</dd><dt>Folder</dt><dd>{{ file.folder.name|default:"Vault root" }}</dd>
-    <dt>File size</dt><dd>{{ file.size_bytes|filesizeformat }}</dd><dt>Uploaded</dt><dd>{{ file.created_at|date:"M j, Y, P" }}</dd>
-  </dl>
-  <div class="form-actions"><a class="button" href="{% url 'vault:download' file.pk %}">Download file</a>
-    <a class="button secondary" href="{% url 'vault:edit' file.pk %}">Edit details</a><a class="text-button" href="{% url 'vault:delete' file.pk %}">Delete</a>
-  </div>
-</section>
-{% endblock %}
+{% extends 'vault/base.html' %}{% load ui %}
+{% block title %}{{ file.name }}{% endblock %}{% block location %}File details{% endblock %}
+{% block content %}<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'vault:list' %}">Vault</a>{% if file.folder %}<span>/</span><a href="{% url 'vault:folder' file.folder.pk %}">{{ file.folder.name }}</a>{% endif %}<span>/</span><span aria-current="page">File details</span></nav><section class="panel padded file-detail"><div class="file-detail-heading"><span class="file-icon file-icon-large">{{ file.extension }}</span><div><p class="eyebrow">YOUR WEFILES VAULT</p><h1>{{ file.name }}</h1><p>Uploaded by {{ file.owner.get_full_name|default:file.owner.username }} on {{ file.created_at|date:'M j, Y' }}</p></div></div><p class="file-description">{{ file.description|default:'No description yet.'|linebreaksbr }}</p><dl class="detail-list"><div><dt>Size</dt><dd>{{ file.size_bytes|filesizeformat }}</dd></div><div><dt>Location</dt><dd>{% if file.folder %}<a href="{% url 'vault:folder' file.folder.pk %}">{{ file.folder.name }}</a>{% else %}<a href="{% url 'vault:list' %}">Vault root</a>{% endif %}</dd></div><div><dt>Last updated</dt><dd>{{ file.updated_at|date:'M j, Y, g:i a' }}</dd></div></dl><div class="form-actions"><a class="btn btn-primary" href="{% url 'vault:download' file.pk %}">{% icon 'download' %}Download file</a><a class="btn btn-outline-secondary" href="{% url 'vault:edit' file.pk %}">Edit details</a><a class="btn btn-outline-danger" href="{% url 'vault:delete' file.pk %}">Delete</a></div><p class="field-help">{% icon 'lock' %}Available to the owner and workspace administrators.</p></section>{% endblock %}

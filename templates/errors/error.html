@@ -1,1 +1,2 @@
-{% extends 'base.html' %}{% block title %}{{ code }}{% endblock %}{% block content %}<section class="panel standalone"><p class="eyebrow">ERROR {{ code }}</p><h1>Let’s get you back.</h1><p>{{ reason }}</p><a class="button" href="{% url 'home' %}">Go home</a></section>{% endblock %}
+{% extends 'base.html' %}{% load ui %}{% block title %}{{ code }}{% endblock %}
+{% block content %}<section class="error-page"><p class="error-code">ERROR {{ code }}</p><h1>Let's get you back.</h1><p>{{ reason }}</p><a class="btn btn-primary" href="{% url 'home' %}">Go home {% icon 'arrow' %}</a></section>{% endblock %}

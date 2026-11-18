@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from .forms import ProfileForm, RegistrationForm
 from .models import User
 from .permissions import role_required
+from vault.selectors import overview_for
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -78,12 +79,10 @@ def dashboard(request):
 @role_required(User.Role.MEMBER)
 @require_http_methods(["GET", "HEAD"])
 def member_dashboard(request):
-    from vault.models import VaultFile
-
     return render(
         request,
         "accounts/member_dashboard.html",
-        {"vault_file_count": VaultFile.objects.filter(owner=request.user).count()},
+        overview_for(request.user),
     )
 
 
@@ -91,8 +90,6 @@ def member_dashboard(request):
 @role_required(User.Role.ADMIN)
 @require_http_methods(["GET", "HEAD"])
 def admin_dashboard(request):
-    from vault.models import VaultFile
-
     counts = User.objects.aggregate(
         total=Count("pk"),
         members=Count("pk", filter=Q(role=User.Role.MEMBER)),
@@ -105,7 +102,7 @@ def admin_dashboard(request):
         {
             "counts": counts,
             "recent_users": recent_users,
-            "vault_file_count": VaultFile.objects.count(),
+            **overview_for(request.user),
         },
     )
 

@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block location %}{% if user.role == 'admin' %}All files{% else %}My files{% endif %}{% endblock %}
