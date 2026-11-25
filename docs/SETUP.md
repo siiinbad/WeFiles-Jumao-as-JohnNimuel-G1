@@ -88,6 +88,10 @@ acceptance flow against the configured private bucket before release.
 
 ## Render - prepare now, deploy later
 
+For the complete owner-operated dashboard walkthrough, follow
+[Render deployment](RENDER_DEPLOYMENT.md). Local hardening is ready; deployment
+and GitHub writes remain with the owner.
+
 Keep the same GitHub repository, named `WeFiles-Lastname-Firstname-Section`, public
 for submission. This folder is its Django app root; if it remains in a monorepo,
 set Render's Root Directory to its exact folder path and adapt workflow paths.
