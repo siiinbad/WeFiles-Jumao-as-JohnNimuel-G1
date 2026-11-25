@@ -17,7 +17,7 @@ class RegistrationJourney(TestCase):
         self.assertEqual(User.objects.count(), 1)
 
     def test_login_logout_and_session_protection(self):
-        User.objects.create_user(username="alice", email="alice@example.test", password=PASSWORD)
+        User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="alice", email="alice@example.test", password=PASSWORD)
         response = self.client.post("/accounts/login/", {"username": "alice", "password": PASSWORD})
         self.assertRedirects(response, "/accounts/dashboard/", fetch_redirect_response=False)
         self.assertContains(self.client.get("/accounts/dashboard/member/"), "Hello, alice")
@@ -26,8 +26,8 @@ class RegistrationJourney(TestCase):
         self.assertRedirects(self.client.get("/accounts/dashboard/"), "/accounts/login/?next=/accounts/dashboard/", fetch_redirect_response=False)
 
     def test_roles_are_enforced_at_direct_urls(self):
-        member = User.objects.create_user(username="member", email="member@example.test", password=PASSWORD)
-        admin = User.objects.create_user(username="admin", email="admin@example.test", password=PASSWORD, role=User.Role.ADMIN)
+        member = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="member", email="member@example.test", password=PASSWORD)
+        admin = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="admin", email="admin@example.test", password=PASSWORD, role=User.Role.ADMIN)
         self.client.force_login(member)
         self.assertEqual(self.client.get("/accounts/dashboard/admin/").status_code, 403)
         self.assertRedirects(self.client.get("/accounts/dashboard/"), "/accounts/dashboard/member/")
@@ -37,8 +37,8 @@ class RegistrationJourney(TestCase):
         self.assertEqual(response.context["counts"], {"total": 2, "members": 1, "admins": 1})
 
     def test_profile_changes_persist_without_privilege_escalation(self):
-        user = User.objects.create_user(username="alice", email="alice@example.test", password=PASSWORD)
-        other = User.objects.create_user(username="bob", email="bob@example.test", password=PASSWORD)
+        user = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="alice", email="alice@example.test", password=PASSWORD)
+        other = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="bob", email="bob@example.test", password=PASSWORD)
         self.client.force_login(user)
         response = self.client.post("/accounts/profile/?user_id=" + str(other.pk), {
             "first_name": "Alice", "last_name": "Crew", "email": "NEW@Example.test",
@@ -55,8 +55,8 @@ class RegistrationJourney(TestCase):
         self.assertEqual(self.client.get(f"/accounts/profile/{other.pk}/").status_code, 404)
 
     def test_duplicate_profile_email_does_not_change_account(self):
-        user = User.objects.create_user(username="alice", email="alice@example.test", password=PASSWORD)
-        User.objects.create_user(username="bob", email="bob@example.test", password=PASSWORD)
+        user = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="alice", email="alice@example.test", password=PASSWORD)
+        User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="bob", email="bob@example.test", password=PASSWORD)
         self.client.force_login(user)
         response = self.client.post("/accounts/profile/", {"email": "BOB@example.test"})
         self.assertContains(response, "This email address is already in use.")

@@ -22,6 +22,7 @@
     <a class="nav-item {% if request.resolver_match.namespace == 'vault' and request.resolver_match.url_name != 'upload' and request.resolver_match.url_name != 'folder_create' %}active{% endif %}" href="{% url 'vault:list' %}">{% icon 'folder' %}{% if user.role == 'admin' %}All files{% else %}My files{% endif %}</a>
     <a class="nav-item {% if request.resolver_match.url_name == 'upload' %}active{% endif %}" href="{% url 'vault:upload' %}">{% icon 'upload' %}Upload file</a>
     <a class="nav-item {% if request.resolver_match.url_name == 'folder_create' %}active{% endif %}" href="{% url 'vault:folder_create' %}">{% icon 'folder-plus' %}New folder</a>
+    {% if user.role == 'admin' %}<a class="nav-item {% if request.resolver_match.url_name == 'account_list' or request.resolver_match.url_name == 'account_access' %}active{% endif %}" href="{% url 'accounts:account_list' %}" {% if request.resolver_match.url_name == 'account_list' or request.resolver_match.url_name == 'account_access' %}aria-current="page"{% endif %}>{% icon 'users' %}Manage accounts</a>{% endif %}
   </nav>
   <div class="sidebar-bottom">
     <a class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'accounts:profile' %}">{% icon 'settings' %}Account settings</a>

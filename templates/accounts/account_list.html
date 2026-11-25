@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% load ui %}
+{% block title %}Manage accounts{% endblock %}{% block location %}Manage accounts{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>Manage accounts</h1><p>Review registrations and manage workspace access.</p></div><a class="btn btn-outline-secondary" href="{% url 'accounts:admin_dashboard' %}">Back to overview</a></div>
+<section class="panel" aria-label="Workspace accounts">
+  <div class="section-heading"><h2>Accounts <span class="count-pill">{{ page_obj.paginator.count }}</span></h2><p>Only Approved accounts can sign in.</p></div>
+  <div class="file-table-wrap"><table class="file-table account-table">
+    <thead><tr><th scope="col">Account</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Access</th></tr></thead>
+    <tbody>{% for account in page_obj %}<tr>
+      <th scope="row"><strong>{{ account.username }}</strong>{% if account.pk == user.pk %}<small class="field-help"> (you)</small>{% endif %}</th>
+      <td>{{ account.email }}</td><td>{{ account.get_role_display }}</td>
+      <td><span class="status-badge status-{{ account.account_status|lower }}">{{ account.get_account_status_display }}</span></td>
+      <td><a class="btn btn-outline-secondary" href="{% url 'accounts:account_access' account.pk %}" aria-label="Review access for {{ account.username }}">Review access</a></td>
+    </tr>{% empty %}<tr><td colspan="5">No accounts to review.</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <nav class="pagination-bar" aria-label="Account pages"><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="btn btn-outline-secondary" href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>
+</section>
+{% endblock %}

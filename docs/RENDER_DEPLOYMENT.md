@@ -6,10 +6,12 @@ Supabase must be ready before Render's first build because the app validates
 its database and storage settings during startup.
 
 You perform the GitHub and cloud actions below. The agent has not pushed code,
-created services, or deployed the app. Local hardening has 88 passing tests.
+created services, or deployed the app. The baseline hardening run had 88 passing tests; the startup-command fix now
+has a full passing run of 94 tests. Account approval verification is recorded in
+[follow-up evidence](PD3_EVIDENCE.md#adminmember-approval-follow-up).
 If you already completed a step, check its expected result and continue.
 
-## 1. Push the four local work branches to GitHub
+## 1. Push the local work branches to GitHub
 
 Open a terminal in the project folder and run:
 
@@ -32,9 +34,11 @@ git push -u origin fix/pd3-test-runner
 git push -u origin hardening/pd3-vault-integrity
 git push -u origin fix/pd3-cascade-cleanup
 git push -u origin test/pd3-regressions-report
+git push -u origin fix/render-storage-cleanup-limit
+git push -u origin fix/admin-member-approval
 ```
 
-**Expected result:** all four branches appear in the same public
+**Expected result:** all six branches appear in the same public
 [GitHub repository](https://github.com/siiinbad/WeFiles-Jumao-as-Jumao-as-G1).
 
 Local `develop` already includes the changes through local integration merges.
@@ -53,6 +57,8 @@ order, waiting for CI to pass each time:
 | 2 | `hardening/pd3-vault-integrity` | `develop` |
 | 3 | `fix/pd3-cascade-cleanup` | `develop` |
 | 4 | `test/pd3-regressions-report` | `develop` |
+| 5 | `fix/render-storage-cleanup-limit` | `develop` |
+| 6 | `fix/admin-member-approval` | `develop` |
 
 Use **Create a merge commit** so the later work branches recognize the earlier
 commits. Keep all merged branches. Then create the release PR with
@@ -60,7 +66,7 @@ commits. Keep all merged branches. Then create the release PR with
 
 **Expected result:** GitHub `main` includes the PD3 code, report, and this guide.
 The repository stays Public. This meets the minimum three work PRs into
-`develop` plus one release PR into `main`; this checkout provides four work PRs.
+`develop` plus one release PR into `main`; this checkout provides six work PRs.
 Local Git merges alone do not count as GitHub PRs.
 
 ## 3. Create your Supabase project
@@ -164,7 +170,7 @@ They are different from the database password and Supabase anon/publishable keys
 | Start command | `bash start.sh` |
 | Health check path | `/health/` |
 | Auto-deploy | Off initially |
-| Instances | One |
+| Instance count | Free runs one automatically; no instance-count input is needed |
 | Instance plan | Choose explicitly; Free is suitable for a limited class demo |
 
 Python `3.14.10` is selected by the tracked `.python-version`. If you also set
@@ -253,18 +259,24 @@ Use the actual HTTPS URL provided by Render:
 
 1. Open `/health/`. Expect `{"status":"ok"}`. This checks PostgreSQL only.
 2. Open `/accounts/register/`. Register two Members and an Admin candidate.
-3. Sign in, check the Member dashboard, edit a profile, and sign out/in.
+3. Confirm new accounts cannot sign in while Pending. Bootstrap your first
+   Admin using the command below, sign in and open **Manage accounts**. Approve
+   both Members, reject a disposable registration, and verify rejected sign-in
+   is blocked. Check the approved Member dashboard and profile, then sign out/in.
 4. Create a folder, upload a small file, download it and compare its contents.
    This verifies S3 as well as the database. Verify a larger allowed file too.
 5. Rename/move the file, confirm deletion, and try deleting a nonempty folder.
 6. As the second Member, try the first Member's file/folder URLs. Expect 404;
-   the Admin dashboard should return 403 to a Member.
+   the Admin dashboard and `/accounts/manage/` should return 403 to a Member.
+   As an Admin, deactivate a Member and verify their session/sign-in is blocked.
+   Reactivate by selecting Approved; require a new sign-in and verify their files
+   remain available. Test role changes on a disposable account with confirmation.
 7. Open an invalid URL. Expect the custom 404 page with no Django traceback.
 8. Restart/redeploy once. Confirm accounts, records and uploaded bytes persist.
 9. Capture the required genuine screenshots and update the PD3 report with the
    hosted URL, actual results and disposable hosted test accounts.
 
-To promote the registered Admin candidate, run the existing command against
+To approve and activate the registered Admin candidate, run this command against
 the hosted application database:
 
 ```text
@@ -273,7 +285,7 @@ python manage.py promote_workspace_admin YOUR_REGISTERED_USERNAME
 
 Use Render Shell if available on your plan. Otherwise run the command from your
 machine with a temporary terminal environment using the hosted application's
-`DATABASE_URL`. The command changes a workspace role; Django staff privileges
+`DATABASE_URL`. The command approves, activates and promotes a workspace Admin; Django staff privileges
 remain separate. Keep local/test settings separate and never run the automated
 suite against the production database.
 
@@ -288,6 +300,7 @@ Supabase. Create fresh hosted test accounts for the final report.
 | GitHub work PR has no changes | Check its base/compare branches and whether those changes are already merged. Follow the ordered work PRs instead of publishing integrated local `develop` first. |
 | Database connection error | Use the exact Session pooler host on port 5432, the correct project database password and its URL-encoded form. Confirm the project is ready. |
 | Missing secret/storage setting | Enter all ten variables from step 8. Keep `DJANGO_DEBUG=False`. |
+| `process_storage_deletions` rejects `--limit 100` | Publish and merge the `fix/render-storage-cleanup-limit` branch through `develop` into `main`, then manually deploy the latest released commit. Keep `bash start.sh`. |
 | Tables are missing | Read Render's startup migration logs. Check that `DATABASE_URL` points to the intended Supabase project. |
 | `/health/` passes but uploads fail | Recheck the private bucket, S3 endpoint, region, key pair and upload limits. Health does not test storage. |
 | CSS is missing | Check `collectstatic` in the build logs and keep the supplied WhiteNoise configuration. |

@@ -36,9 +36,9 @@ class VaultValidationTests(SimpleTestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_access_is_limited_to_owner_unless_admin(self):
-        owner = SimpleNamespace(pk=1, role="member", is_authenticated=True, is_active=True)
-        other = SimpleNamespace(pk=2, role="member", is_authenticated=True, is_active=True)
-        admin = SimpleNamespace(pk=3, role="admin", is_authenticated=True, is_active=True)
+        owner = SimpleNamespace(pk=1, role="member", is_authenticated=True, is_active=True, account_status="APPROVED")
+        other = SimpleNamespace(pk=2, role="member", is_authenticated=True, is_active=True, account_status="APPROVED")
+        admin = SimpleNamespace(pk=3, role="admin", is_authenticated=True, is_active=True, account_status="APPROVED")
         self.assertTrue(can_manage(owner, owner.pk))
         self.assertFalse(can_manage(other, owner.pk))
         self.assertTrue(can_manage(admin, owner.pk))

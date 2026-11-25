@@ -26,3 +26,7 @@
 [data-bs-theme="dark"] .status-emblem.danger { background: #40242a; color: var(--danger); }
 @media (max-width: 767px) { .stat-card strong.stat-role { font-size: 23px; } .public-header { gap: 16px; } .public-header > div { gap: 12px; } }
 @media (max-width: 540px) { .public-header .brand { font-size: 23px; } .public-header > div > a { font-size: 11px; } .table-note { display: none; } .detail-list > div { align-items: flex-start; } .detail-list dd { max-width: 65%; } .welcome-card h1 { font-size: 35px; } }
+.account-table tbody th { text-transform: none; letter-spacing: normal; background: transparent; font-size: 12px; color: var(--ink); overflow-wrap: anywhere; }
+.account-table td { overflow-wrap: anywhere; }
+.status-inactive { color: #991b1b; background: #fef2f2; }
+@media (max-width: 540px) { .account-table { min-width: 520px; } }

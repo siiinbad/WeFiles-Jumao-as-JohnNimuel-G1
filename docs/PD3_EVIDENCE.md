@@ -1,8 +1,8 @@
 # PD3 hardening evidence
 
 The existing private vault and the four standard account features are hardened
-and verified locally. This increment adds no product features. Student identity
-fields remain blank by request. GitHub access is read-only: no branches were
+and verified locally. The SDD account approval follow-up is documented below.
+Student identity fields remain blank by request. GitHub access is read-only: no branches were
 pushed, no PRs were created or merged, and no repository settings were changed.
 
 ## Verification
@@ -114,3 +114,63 @@ only in the temporary local evidence database, with the dedicated demo password
 printed in the report. They are not accounts in the user's normal or hosted
 database. To demonstrate elsewhere, register disposable accounts on that local
 instance and use the existing `promote_workspace_admin` command for its Admin.
+
+
+## Render startup command follow-up
+
+During owner-operated Render deployment, startup reported that
+`process_storage_deletions --limit 100` was unrecognized. `start.sh` already
+passed that option, but the management command had no argument definition.
+The local `fix/render-storage-cleanup-limit` branch adds the option, defaults
+to 100, forwards it to the existing cleanup service, and rejects nonpositive
+or nonnumeric values before processing. The Render start command stays
+`bash start.sh`.
+
+Five command tests and one real PostgreSQL batch-limit regression were added.
+The complete suite now passes **94 tests, with no skips**; see the captured
+[follow-up output](pd3/startup-fix-test-results.txt). The retained 88-test log
+and PDF describe the earlier PD3 baseline. This follow-up also needs its own
+work PR into remote `develop`, then the release into `main`, before Render can
+use the fix. GitHub and the hosted service were not modified by the agent.
+
+## Admin/Member approval follow-up
+
+The SDD review identified missing account approval and workspace account
+management (BR03–BR06). The local `fix/admin-member-approval` branch adds:
+
+- Pending registrations that cannot sign in, with server-controlled Member
+  roles. Pending, Approved, Rejected and Inactive are constrained model choices.
+- An approved Admin's **Manage accounts** page at `/accounts/manage/`, with
+  approval/rejection, deactivation/reactivation and Admin/Member assignment.
+  Ordinary workspace Admins do not need Django staff privileges.
+- Login/backend and view/service checks, POST with CSRF and explicit confirmation,
+  transactions and row locks for competing Admin changes, stale-form protection,
+  and session revocation on every access change. Members cannot alter access;
+  Admins cannot change their own access or operator maintenance accounts.
+- Deactivation retains files and folders. File ownership protections remain
+  unchanged. Profile saves update only profile fields so they cannot undo an
+  access change made while the form was open.
+- Migration `accounts.0003_account_approval`, which preserves existing active
+  users as Approved and inactive users as Inactive. New accounts default Pending.
+  The authentication update requires existing users to sign in again once.
+- First-Admin bootstrap via `python manage.py promote_workspace_admin USERNAME`;
+  this approves and activates the registered account without granting staff
+  privileges. `createsuperuser` creates an approved operator Admin. Maintenance
+  account screens are read-only to keep routine access changes on the guarded form.
+
+The complete suite passes **119 tests, with no skips**, using
+`python manage.py test` against isolated native PostgreSQL. The 25 added tests
+include real HTTP approval and denial paths, confirmation/CSRF checks, role
+assignment, old-cookie revocation after reactivation, account preservation,
+concurrent mutual Admin deactivation, and a real migration of existing accounts.
+See the captured [approval test output](pd3/account-approval-test-results.txt).
+Existing account and vault fixtures explicitly represent approved users.
+
+Run `python manage.py migrate` before starting this version. Render's existing
+`start.sh` already runs migrations after the user releases this branch through
+`develop` into `main` and deploys it. No hosted database migration, GitHub push,
+remote PR, or deployment was performed by the agent. The retained PDF describes
+the earlier baseline; add this follow-up and genuine hosted approval screenshots
+when finalizing the submission. Browser layout verification remains pending
+because the browser tool has no available host; template responses and escaping
+are covered by the automated tests.

@@ -13,9 +13,9 @@ from .services import process_deletions
 
 class VaultJourneyTests(TestCase):
     def setUp(self):
-        self.owner = User.objects.create_user(username="fileowner", email="owner@example.test", password="A-long-test-password!374")
-        self.other = User.objects.create_user(username="othermember", email="other@example.test", password="A-long-test-password!374")
-        self.admin = User.objects.create_user(username="vaultadmin", email="admin@example.test", password="A-long-test-password!374", role=User.Role.ADMIN)
+        self.owner = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="fileowner", email="owner@example.test", password="A-long-test-password!374")
+        self.other = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="othermember", email="other@example.test", password="A-long-test-password!374")
+        self.admin = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="vaultadmin", email="admin@example.test", password="A-long-test-password!374", role=User.Role.ADMIN)
         self.media = TemporaryDirectory()
         self.addCleanup(self.media.cleanup)
         self.storage = override_settings(MEDIA_ROOT=self.media.name)

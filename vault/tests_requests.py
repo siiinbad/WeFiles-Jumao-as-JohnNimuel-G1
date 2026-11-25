@@ -19,8 +19,8 @@ from .models import Folder, VaultFile
 class VaultRequestHardeningTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.owner = User.objects.create_user(username="owner", email="owner@example.test")
-        cls.other = User.objects.create_user(username="other", email="other@example.test")
+        cls.owner = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="owner", email="owner@example.test")
+        cls.other = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="other", email="other@example.test")
         cls.folder = Folder.objects.create(owner=cls.owner, name="Private folder")
         cls.file = VaultFile.objects.create(
             owner=cls.owner, folder=cls.folder, name="private.txt",
@@ -177,7 +177,7 @@ class VaultRequestHardeningTests(TestCase):
 class VaultConstraintTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.owner = User.objects.create_user(username="owner", email="owner@example.test")
+        cls.owner = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="owner", email="owner@example.test")
 
     def test_database_rejects_case_insensitive_root_folder_duplicates(self):
         Folder.objects.create(owner=self.owner, name="Guides")
