@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 def can_manage(user, owner_id):
     return bool(user.is_authenticated and user.is_active and
+                user.account_status == User.AccountStatus.APPROVED and
                 (user.role == User.Role.ADMIN or
                  (user.role == User.Role.MEMBER and user.pk == owner_id)))
 

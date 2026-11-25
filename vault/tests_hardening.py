@@ -15,8 +15,8 @@ from .services import delete_file, delete_folder, save_folder, update_file, uplo
 class VaultServiceHardeningTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.owner = User.objects.create_user(username="owner", email="owner@example.test")
-        cls.other = User.objects.create_user(username="other", email="other@example.test")
+        cls.owner = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="owner", email="owner@example.test")
+        cls.other = User.objects.create_user(account_status=User.AccountStatus.APPROVED, username="other", email="other@example.test")
 
     def setUp(self):
         media = TemporaryDirectory()

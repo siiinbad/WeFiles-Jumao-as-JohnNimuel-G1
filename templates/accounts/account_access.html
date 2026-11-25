@@ -1,0 +1,19 @@
+{% extends 'base.html' %}{% load ui %}
+{% block title %}Review account access{% endblock %}{% block location %}Manage accounts{% endblock %}
+{% block content %}
+<section class="panel padded narrow-panel">
+  <h1>Review account access</h1>
+  <dl class="detail-list"><div><dt>Username</dt><dd>{{ account.username }}</dd></div><div><dt>Email</dt><dd>{{ account.email }}</dd></div><div><dt>Current role</dt><dd>{{ account.get_role_display }}</dd></div><div><dt>Current status</dt><dd>{{ account.get_account_status_display }}</dd></div></dl>
+  {% if protected %}
+    <div class="notice notice-warning" role="status">{% if account.pk == user.pk %}You cannot change your own role or status. Ask another workspace Admin.{% else %}This is a maintenance account. Its access is managed by the system operator.{% endif %}</div>
+    {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <a class="btn btn-outline-secondary" href="{% url 'accounts:account_list' %}">Back to accounts</a>
+  {% else %}
+    <p>Choose Approved to approve or reactivate this account, Rejected to decline registration, or Inactive to deactivate access. Pending keeps registration on hold. A role change applies when the account is Approved.</p>
+    <p class="field-help">Saving signs this user out of existing sessions. Their files and folders are retained. An Admin can manage files and other accounts across the workspace.</p>
+    <form method="post" data-busy>{% csrf_token %}{% include 'components/form.html' %}
+      <div class="form-actions"><button class="btn btn-primary" type="submit">Confirm access change</button><a class="btn btn-outline-secondary" href="{% url 'accounts:account_list' %}">Cancel</a></div><p class="busy-label" role="status">Updating account access...</p>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

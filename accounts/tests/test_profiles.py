@@ -15,7 +15,7 @@ class ProfileChecks(SimpleTestCase):
         self.assertEqual(Client(enforce_csrf_checks=True).post("/accounts/profile/", {}).status_code, 403)
 
     def test_profile_uses_session_user_even_if_another_id_is_requested(self):
-        user = User(pk=7, username="mine", email="mine@example.test")
+        user = User(account_status=User.AccountStatus.APPROVED, is_active=True, pk=7, username="mine", email="mine@example.test")
         request = RequestFactory().get("/accounts/profile/", {"user_id": 99})
         request.user = user
         with patch.object(views, "render") as render:
@@ -27,7 +27,7 @@ class ProfileChecks(SimpleTestCase):
         self.assertEqual(set(form.fields), {"first_name", "last_name", "email"})
 
     def test_email_normalizes_and_excludes_current_account(self):
-        user = User(pk=7, username="mine", email="mine@example.test")
+        user = User(account_status=User.AccountStatus.APPROVED, is_active=True, pk=7, username="mine", email="mine@example.test")
         form = ProfileForm(instance=user)
         form.cleaned_data = {"email": " MY.NEW@Example.test "}
         with patch.object(User.objects, "filter") as query:
@@ -36,7 +36,7 @@ class ProfileChecks(SimpleTestCase):
             query.return_value.exclude.assert_called_once_with(pk=7)
 
     def test_duplicate_email_is_rejected(self):
-        form = ProfileForm(instance=User(pk=7))
+        form = ProfileForm(instance=User(account_status=User.AccountStatus.APPROVED, is_active=True, pk=7))
         form.cleaned_data = {"email": "taken@example.test"}
         with patch.object(User.objects, "filter") as query:
             query.return_value.exclude.return_value.exists.return_value = True
