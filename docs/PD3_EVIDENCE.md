@@ -114,3 +114,21 @@ only in the temporary local evidence database, with the dedicated demo password
 printed in the report. They are not accounts in the user's normal or hosted
 database. To demonstrate elsewhere, register disposable accounts on that local
 instance and use the existing `promote_workspace_admin` command for its Admin.
+
+
+## Render startup command follow-up
+
+During owner-operated Render deployment, startup reported that
+`process_storage_deletions --limit 100` was unrecognized. `start.sh` already
+passed that option, but the management command had no argument definition.
+The local `fix/render-storage-cleanup-limit` branch adds the option, defaults
+to 100, forwards it to the existing cleanup service, and rejects nonpositive
+or nonnumeric values before processing. The Render start command stays
+`bash start.sh`.
+
+Five command tests and one real PostgreSQL batch-limit regression were added.
+The complete suite now passes **94 tests, with no skips**; see the captured
+[follow-up output](pd3/startup-fix-test-results.txt). The retained 88-test log
+and PDF describe the earlier PD3 baseline. This follow-up also needs its own
+work PR into remote `develop`, then the release into `main`, before Render can
+use the fix. GitHub and the hosted service were not modified by the agent.
