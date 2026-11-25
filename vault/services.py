@@ -143,9 +143,9 @@ def cleanup_after_commit():
 @transaction.atomic
 def delete_file(user, file):
     file = locked_record(user, VaultFile, file.pk)
-    StorageDeletionJob.objects.get_or_create(storage_key=file.blob.name)
+    # The post_delete signal queues cleanup in this same transaction, including
+    # deletions caused by Django's account cascade or maintenance commands.
     file.delete()
-    transaction.on_commit(cleanup_after_commit)
 
 
 def process_deletions(limit=100):

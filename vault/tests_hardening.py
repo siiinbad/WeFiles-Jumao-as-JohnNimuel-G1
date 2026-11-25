@@ -4,10 +4,11 @@ from unittest.mock import patch
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import transaction
 from django.test import TestCase, override_settings
 
 from accounts.models import User
-from .models import Folder, VaultFile
+from .models import Folder, StorageDeletionJob, VaultFile
 from .services import delete_file, delete_folder, save_folder, update_file, upload_file
 
 
@@ -103,3 +104,34 @@ class VaultServiceHardeningTests(TestCase):
                 )
         store.assert_not_called()
         self.assertFalse(VaultFile.objects.exists())
+
+    def test_account_cascade_removes_private_bytes_after_commit(self):
+        file = self.upload()
+        key = file.blob.name
+        with self.captureOnCommitCallbacks(execute=True):
+            self.owner.delete()
+        self.assertFalse(VaultFile.objects.exists())
+        self.assertFalse(file.blob.storage.exists(key))
+        self.assertFalse(StorageDeletionJob.objects.filter(storage_key=key).exists())
+
+    def test_account_cascade_keeps_retry_job_when_storage_is_unavailable(self):
+        file = self.upload()
+        key = file.blob.name
+        with patch("vault.services.default_storage.delete", side_effect=OSError("offline")):
+            with self.captureOnCommitCallbacks(execute=True):
+                self.owner.delete()
+        self.assertFalse(VaultFile.objects.exists())
+        self.assertEqual(StorageDeletionJob.objects.get(storage_key=key).attempts, 1)
+        self.assertTrue(file.blob.storage.exists(key))
+
+    def test_rolled_back_delete_keeps_record_and_private_bytes(self):
+        file = self.upload()
+        key = file.blob.name
+        with self.captureOnCommitCallbacks(execute=True):
+            with self.assertRaisesMessage(ValidationError, "abort"):
+                with transaction.atomic():
+                    delete_file(self.owner, file)
+                    raise ValidationError("abort")
+        self.assertTrue(VaultFile.objects.filter(pk=file.pk).exists())
+        self.assertTrue(file.blob.storage.exists(key))
+        self.assertFalse(StorageDeletionJob.objects.filter(storage_key=key).exists())
