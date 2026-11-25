@@ -1,0 +1,13 @@
+Creating test database for alias 'default'...
+..................................Private file deletion will be retried (OSError)
+........Private file upload failed
+..Private file deletion will be retried (OSError)
+..........................A private download object was unavailable
+.................................................
+----------------------------------------------------------------------
+Ran 119 tests in 3.141s
+
+OK
+Destroying test database for alias 'default'...
+Found 119 test(s).
+System check identified no issues (0 silenced).

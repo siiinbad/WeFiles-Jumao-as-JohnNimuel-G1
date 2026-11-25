@@ -1,8 +1,8 @@
 # WeFiles - Project Development 3
 
 PD3 hardens the existing private file vault and standard account features.
-It adds regression coverage and safer access, validation, and deletion handling;
-it does not add new product features. Local PostgreSQL verification is complete.
+It adds regression coverage and safer access, validation, and deletion handling,
+including the SDD's Admin/Member approval and account access rules.
 GitHub is read-only for this work: local branches/commits are prepared, while
 remote PRs, deployment verification, and final submission evidence remain pending.
 
@@ -30,8 +30,13 @@ through its S3 interface. Local filesystem storage is allowed only in debug
 mode. Production startup refuses local upload storage or missing cloud settings.
 
 Registration, login/POST logout, Admin/Member dashboards and own profile editing
-remain included. New registrations cannot select privileges. Workspace Admin
-roles are separate from Django maintenance staff permissions.
+remain included. New registrations are **Pending** Members and cannot sign in
+until a workspace Admin approves them. An approved Admin uses **Manage accounts**
+(`/accounts/manage/`) to approve/reject registrations, deactivate/reactivate
+accounts and assign Admin/Member roles. Every change requires confirmation,
+revokes existing sessions and retains the user's files. Members cannot manage
+accounts or edit their own role/status. Workspace Admin roles are separate from
+Django maintenance staff permissions.
 
 The interface uses the original WeFiles logo, sidebar, design tokens, responsive
 file tables, account cards and theme controls. See [UI reference](docs/UI_REFERENCE.md)
@@ -100,8 +105,9 @@ account, or downloaded project helper scripts are required.
    ```
 
    Open **http://127.0.0.1:8000/** and register an account. Press **Ctrl+C** to stop.
-   To make a registered account an Admin, stop the server and run
+   Registration starts as Pending. To approve and activate your first Admin, stop the server and run
    `python manage.py promote_workspace_admin USERNAME`, then start it again.
+   Sign in as that Admin and use **Manage accounts** to approve other users.
 
 **Next time**, open Command Prompt in the project folder and run:
 
@@ -271,18 +277,33 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Open **http://127.0.0.1:8000/**, register at `/accounts/register/`, and sign in.
+Open **http://127.0.0.1:8000/** and register at `/accounts/register/`.
+New accounts wait for approval before sign-in.
 The database health endpoint at **http://127.0.0.1:8000/health/** should return
 `{"status": "ok"}`. Keep the terminal open while using the app; press **Ctrl+C**
 to stop Django. This is the local development server.
 
-To give a registered account the workspace Admin role, run the appropriate
+To approve and activate your first workspace Admin, run the appropriate
 command in another terminal (replace `USERNAME` with the account's username):
 
 ```bash
 # Linux / macOS
 .venv/bin/python manage.py promote_workspace_admin USERNAME
 ```
+
+Sign in as that Admin and open **Manage accounts** to approve other users.
+The command does not grant Django staff/superuser privileges. Workspace Admins
+cannot change their own access or maintenance accounts; another Admin handles
+ordinary Admin changes, and the system operator manages maintenance access.
+`createsuperuser` creates an approved, active Admin for operator use. The Django
+maintenance account screens are read-only; use `changepassword USERNAME` for
+operator password recovery.
+
+When upgrading an existing database, run `python manage.py migrate` before
+starting this version. Migration `accounts.0003_account_approval` preserves
+existing active accounts as Approved and inactive accounts as Inactive. Only
+new registrations default to Pending. Existing users must sign in again once
+after this authentication update.
 
 #### Starting again later
 
