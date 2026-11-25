@@ -6,10 +6,11 @@ Supabase must be ready before Render's first build because the app validates
 its database and storage settings during startup.
 
 You perform the GitHub and cloud actions below. The agent has not pushed code,
-created services, or deployed the app. Local hardening has 88 passing tests.
+created services, or deployed the app. The baseline hardening run had 88 passing tests; the startup-command fix now
+has a full passing run of 94 tests (see [follow-up evidence](PD3_EVIDENCE.md#render-startup-command-follow-up)).
 If you already completed a step, check its expected result and continue.
 
-## 1. Push the four local work branches to GitHub
+## 1. Push the local work branches to GitHub
 
 Open a terminal in the project folder and run:
 
@@ -32,9 +33,10 @@ git push -u origin fix/pd3-test-runner
 git push -u origin hardening/pd3-vault-integrity
 git push -u origin fix/pd3-cascade-cleanup
 git push -u origin test/pd3-regressions-report
+git push -u origin fix/render-storage-cleanup-limit
 ```
 
-**Expected result:** all four branches appear in the same public
+**Expected result:** all five branches appear in the same public
 [GitHub repository](https://github.com/siiinbad/WeFiles-Jumao-as-Jumao-as-G1).
 
 Local `develop` already includes the changes through local integration merges.
@@ -53,6 +55,7 @@ order, waiting for CI to pass each time:
 | 2 | `hardening/pd3-vault-integrity` | `develop` |
 | 3 | `fix/pd3-cascade-cleanup` | `develop` |
 | 4 | `test/pd3-regressions-report` | `develop` |
+| 5 | `fix/render-storage-cleanup-limit` | `develop` |
 
 Use **Create a merge commit** so the later work branches recognize the earlier
 commits. Keep all merged branches. Then create the release PR with
@@ -60,7 +63,7 @@ commits. Keep all merged branches. Then create the release PR with
 
 **Expected result:** GitHub `main` includes the PD3 code, report, and this guide.
 The repository stays Public. This meets the minimum three work PRs into
-`develop` plus one release PR into `main`; this checkout provides four work PRs.
+`develop` plus one release PR into `main`; this checkout provides five work PRs.
 Local Git merges alone do not count as GitHub PRs.
 
 ## 3. Create your Supabase project
@@ -164,7 +167,7 @@ They are different from the database password and Supabase anon/publishable keys
 | Start command | `bash start.sh` |
 | Health check path | `/health/` |
 | Auto-deploy | Off initially |
-| Instances | One |
+| Instance count | Free runs one automatically; no instance-count input is needed |
 | Instance plan | Choose explicitly; Free is suitable for a limited class demo |
 
 Python `3.14.10` is selected by the tracked `.python-version`. If you also set
@@ -288,6 +291,7 @@ Supabase. Create fresh hosted test accounts for the final report.
 | GitHub work PR has no changes | Check its base/compare branches and whether those changes are already merged. Follow the ordered work PRs instead of publishing integrated local `develop` first. |
 | Database connection error | Use the exact Session pooler host on port 5432, the correct project database password and its URL-encoded form. Confirm the project is ready. |
 | Missing secret/storage setting | Enter all ten variables from step 8. Keep `DJANGO_DEBUG=False`. |
+| `process_storage_deletions` rejects `--limit 100` | Publish and merge the `fix/render-storage-cleanup-limit` branch through `develop` into `main`, then manually deploy the latest released commit. Keep `bash start.sh`. |
 | Tables are missing | Read Render's startup migration logs. Check that `DATABASE_URL` points to the intended Supabase project. |
 | `/health/` passes but uploads fail | Recheck the private bucket, S3 endpoint, region, key pair and upload limits. Health does not test storage. |
 | CSS is missing | Check `collectstatic` in the build logs and keep the supplied WhiteNoise configuration. |
