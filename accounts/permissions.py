@@ -1,5 +1,6 @@
 from functools import wraps
 from django.core.exceptions import PermissionDenied
+from .models import User
 
 
 def role_required(*roles):
@@ -7,7 +8,9 @@ def role_required(*roles):
     def decorate(view):
         @wraps(view)
         def wrapped(request, *args, **kwargs):
-            if not request.user.is_active or request.user.role not in roles:
+            if (not request.user.is_active or
+                    request.user.account_status != User.AccountStatus.APPROVED or
+                    request.user.role not in roles):
                 raise PermissionDenied
             return view(request, *args, **kwargs)
         return wrapped

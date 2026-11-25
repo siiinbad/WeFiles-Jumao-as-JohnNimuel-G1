@@ -10,7 +10,7 @@ from accounts.models import User
 class RoleChecks(SimpleTestCase):
     def request_for(self, role):
         request = RequestFactory().get("/accounts/dashboard/")
-        request.user = User(username="crew", email="crew@example.test", role=role)
+        request.user = User(account_status=User.AccountStatus.APPROVED, is_active=True, username="crew", email="crew@example.test", role=role)
         return request
 
     def test_router_selects_users_role(self):
