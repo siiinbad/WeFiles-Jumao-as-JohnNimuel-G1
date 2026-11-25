@@ -28,7 +28,21 @@ def require_manage(user, owner_id):
 def lock_owner(user, owner_id):
     require_manage(user, owner_id)
     # One stable row serializes folder moves, uploads and deletions for this owner.
-    User.objects.select_for_update().get(pk=owner_id)
+    if User.objects.select_for_update().filter(pk=owner_id).first() is None:
+        raise ValidationError("This account is no longer available. Please sign in again.")
+
+
+def locked_record(user, model, pk):
+    """Recheck existence after the owner lock so stale requests cannot resurrect rows."""
+    owner_id = model.objects.filter(pk=pk).values_list("owner_id", flat=True).first()
+    if owner_id is None:
+        raise ValidationError("This item was already deleted. Return to the vault and try again.")
+    lock_owner(user, owner_id)
+    item = model.objects.select_for_update().filter(pk=pk).first()
+    if item is None:
+        raise ValidationError("This item was already deleted. Return to the vault and try again.")
+    require_manage(user, item.owner_id)
+    return item
 
 
 def destination(owner_id, folder_id):
@@ -51,6 +65,7 @@ def upload_file(user, upload, folder=None, description=""):
         with transaction.atomic():
             lock_owner(user, user.pk)
             file.folder = destination(user.pk, folder.pk if folder else None)
+            file.full_clean(exclude=["blob"])
             file.blob.save(upload.name, upload, save=False)
             file.full_clean()
             file.save()
@@ -69,10 +84,11 @@ def upload_file(user, upload, folder=None, description=""):
 def save_folder(user, folder):
     if folder._state.adding:
         folder.owner = user
+        lock_owner(user, folder.owner_id)
     else:
-        saved = Folder.objects.get(pk=folder.pk)
-        folder.owner_id = saved.owner_id
-    lock_owner(user, folder.owner_id)
+        saved = locked_record(user, Folder, folder.pk)
+        saved.name, saved.parent_id = folder.name, folder.parent_id
+        folder = saved
     folder.parent = destination(folder.owner_id, folder.parent_id)
     folder.full_clean()
     # Validate the height of the entire moved subtree, not just the moved folder.
@@ -100,19 +116,17 @@ def save_folder(user, folder):
 
 @transaction.atomic
 def update_file(user, file):
-    saved = VaultFile.objects.get(pk=file.pk)
-    lock_owner(user, saved.owner_id)
-    file.owner_id = saved.owner_id
-    file.folder = destination(file.owner_id, file.folder_id)
-    file.full_clean()
-    file.save(update_fields=["name", "description", "folder", "updated_at"])
-    return file
+    saved = locked_record(user, VaultFile, file.pk)
+    saved.name, saved.description = file.name, file.description
+    saved.folder = destination(saved.owner_id, file.folder_id)
+    saved.full_clean()
+    saved.save(update_fields=["name", "description", "folder", "updated_at"])
+    return saved
 
 
 @transaction.atomic
 def delete_folder(user, folder):
-    folder = Folder.objects.get(pk=folder.pk)
-    lock_owner(user, folder.owner_id)
+    folder = locked_record(user, Folder, folder.pk)
     if folder.children.exists() or folder.files.exists():
         raise ValidationError("Move or delete its contents first. Only empty folders can be deleted.")
     folder.delete()
@@ -128,11 +142,10 @@ def cleanup_after_commit():
 
 @transaction.atomic
 def delete_file(user, file):
-    file = VaultFile.objects.get(pk=file.pk)
-    lock_owner(user, file.owner_id)
-    StorageDeletionJob.objects.get_or_create(storage_key=file.blob.name)
+    file = locked_record(user, VaultFile, file.pk)
+    # The post_delete signal queues cleanup in this same transaction, including
+    # deletions caused by Django's account cascade or maintenance commands.
     file.delete()
-    transaction.on_commit(cleanup_after_commit)
 
 
 def process_deletions(limit=100):

@@ -2,6 +2,7 @@ import logging
 import uuid
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Q
@@ -10,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from accounts.models import User
+from accounts.permissions import role_required
 
 from .forms import FileForm, FolderForm, UploadForm
 from .models import Folder, VaultFile
@@ -26,6 +28,8 @@ def resolve_uuid(value):
         raise Http404("That item could not be found.") from None
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "HEAD"])
 def file_list(request, folder_id=None):
     folder = None
@@ -51,6 +55,8 @@ def file_list(request, folder_id=None):
     })
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "POST"])
 def upload(request):
     initial = {}
@@ -89,6 +95,8 @@ def upload(request):
     )
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "POST"])
 def folder_create(request):
     initial = {}
@@ -116,6 +124,8 @@ def folder_create(request):
     )
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "POST"])
 def folder_edit(request, pk):
     folder = get_object_or_404(visible_folders(request.user), pk=resolve_uuid(pk))
@@ -137,12 +147,16 @@ def folder_edit(request, pk):
     )
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "HEAD"])
 def file_detail(request, pk):
     file = get_object_or_404(visible_files(request.user), pk=resolve_uuid(pk))
     return render(request, "vault/detail.html", {"file": file})
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "POST"])
 def file_edit(request, pk):
     file = get_object_or_404(visible_files(request.user), pk=resolve_uuid(pk))
@@ -164,8 +178,7 @@ def file_edit(request, pk):
     )
 
 
-@require_http_methods(["GET", "POST"])
-def delete_item(request, pk, item_type):
+def _delete_item(request, pk, item_type):
     queryset = visible_files(request.user) if item_type == "file" else visible_folders(request.user)
     item = get_object_or_404(queryset, pk=resolve_uuid(pk))
     if request.method == "POST":
@@ -182,6 +195,22 @@ def delete_item(request, pk, item_type):
     return render(request, "vault/confirm_delete.html", {"object": item, "item_type": item_type})
 
 
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
+@require_http_methods(["GET", "POST"])
+def file_delete(request, pk):
+    return _delete_item(request, pk, "file")
+
+
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
+@require_http_methods(["GET", "POST"])
+def folder_delete(request, pk):
+    return _delete_item(request, pk, "folder")
+
+
+@login_required
+@role_required(User.Role.ADMIN, User.Role.MEMBER)
 @require_http_methods(["GET", "HEAD"])
 def download(request, pk):
     file = get_object_or_404(visible_files(request.user), pk=resolve_uuid(pk))
