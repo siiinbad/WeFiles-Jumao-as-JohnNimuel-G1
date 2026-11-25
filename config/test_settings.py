@@ -1,6 +1,11 @@
-"""Offline checks need no credentials; database tests use a disposable PostgreSQL DB."""
+"""Isolated test settings used by ``python manage.py test``.
+
+Local PostgreSQL runs use Django's separate test_<name> database. Remote
+database tests require an explicitly configured disposable TEST_DATABASE_URL.
+"""
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
@@ -34,3 +39,7 @@ if test_url := os.getenv("TEST_DATABASE_URL"):
             raise ImproperlyConfigured("Set ALLOW_DISPOSABLE_SUPABASE_TESTS=yes only for an empty disposable TEST project; tests flush its tables.")
         db["TEST"] = {"NAME": db["NAME"]}
     DATABASES = {"default": db}
+elif urlsplit(application_database_url).hostname in {"localhost", "127.0.0.1", "::1"}:
+    DATABASES = {"default": database_config(application_database_url)}
+
+DATABASES["default"]["CONN_MAX_AGE"] = 0

@@ -1,6 +1,4 @@
-import os
 from tempfile import TemporaryDirectory
-from unittest import skipUnless
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -13,7 +11,6 @@ from .models import Folder, StorageDeletionJob, VaultFile
 from .services import process_deletions
 
 
-@skipUnless(os.getenv("TEST_DATABASE_URL"), "Requires a disposable PostgreSQL TEST_DATABASE_URL")
 class VaultJourneyTests(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user(username="fileowner", email="owner@example.test", password="A-long-test-password!374")
