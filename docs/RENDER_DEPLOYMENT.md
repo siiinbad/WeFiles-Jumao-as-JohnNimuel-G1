@@ -1,213 +1,301 @@
-# Deploy WeFiles to Render
+# WeFiles deployment walkthrough
 
-This guide is for the owner to perform the deployment. The local PD3 work has
-88 passing tests; no Render service, Supabase project, remote branch, or pull
-request was created by the agent. GitHub remains read-only for this task.
+Follow this order: **GitHub -> Supabase -> Render -> verification**.
+Supabase provides the database and private file storage. Render runs Django.
+Supabase must be ready before Render's first build because the app validates
+its database and storage settings during startup.
 
-Use **Render for the Django web service** and **Supabase for PostgreSQL and a
-private file-storage bucket**. This matches the current application. There is
-no container setup and no frontend build step.
+You perform the GitHub and cloud actions below. The agent has not pushed code,
+created services, or deployed the app. Local hardening has 88 passing tests.
+If you already completed a step, check its expected result and continue.
 
-## 1. Publish the tested code through your required PR workflow
+## 1. Push the four local work branches to GitHub
 
-The new hardening changes currently exist locally, not on remote `main`.
-Deploying the current GitHub `main` immediately would deploy the older PD2 code.
+Open a terminal in the project folder and run:
 
-When you are ready to make GitHub changes yourself:
+```text
+git fetch origin
+git ls-remote --heads origin refs/heads/develop
+```
 
-1. Use the same public repository. If remote `develop` does not exist, create it
-   from the current stable remote `main`.
-2. Publish these retained work branches and merge their PRs into remote
-   `develop`, in this order:
+If the second command prints a commit and `refs/heads/develop`, the remote
+branch exists. If it prints nothing, create remote `develop` from remote `main`:
 
-   | Work branch | Contents |
-   | --- | --- |
-   | `fix/pd3-test-runner` | Plain test command, test isolation, README and CI. |
-   | `hardening/pd3-vault-integrity` | Login/role checks, stale records and locks. |
-   | `fix/pd3-cascade-cleanup` | Private-byte cleanup on account deletion and rollback. |
-   | `test/pd3-regressions-report` | HTTP/constraint regressions, report and this guide. |
+```text
+git push origin origin/main:refs/heads/develop
+```
 
-3. Review CI results, then merge a `develop` -> `main` PR. Keep the work branches.
+Then publish the existing work branches:
 
-Local `develop` already includes local integration merges. **Do not publish
-that integrated branch as remote `develop` before the work PRs**: doing so would
-put their changes in the target already and can leave the PRs with no changes.
-Publish the work branches first against the remote integration branch above.
-Do not commit `.env`, `.venv/`, local databases, or private uploads.
+```text
+git push -u origin fix/pd3-test-runner
+git push -u origin hardening/pd3-vault-integrity
+git push -u origin fix/pd3-cascade-cleanup
+git push -u origin test/pd3-regressions-report
+```
 
-## 2. Prepare PostgreSQL and private storage in Supabase
+**Expected result:** all four branches appear in the same public
+[GitHub repository](https://github.com/siiinbad/WeFiles-Jumao-as-Jumao-as-G1).
 
-Create a new Supabase project for this Django schema, or use a compatible
-project dedicated to this checkout. Keep it separate from the older WeFiles
-schema and from disposable test databases. Django's migrations create the
-application tables; do not apply the legacy React/Supabase SQL.
+Local `develop` already includes the changes through local integration merges.
+Keep that integrated branch unpushed until the work PRs are merged; publishing
+it first can leave those PRs with no changes. Keep `.env` ignored and private.
 
-From the project's **Connect** dialog, copy the **Session pooler** PostgreSQL
-connection string on port `5432`. Replace its password placeholder with the
-URL-encoded database password. This becomes `DATABASE_URL` in Render. It must
-be a hosted database address, not `localhost` or the laptop's test connection.
-See [Supabase's connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
+## 2. Merge the work PRs into develop, then release to main
 
-Django owns registration and sessions; this app does not use Supabase Auth.
-Disable the Supabase Data API if unused, or keep the Django tables out of its
-exposed schemas with appropriate grants, as described in [SETUP](SETUP.md).
+On GitHub, open **Pull requests -> New pull request**. Select **base: develop**
+and the work branch as **compare**. Create and merge one PR at a time in this
+order, waiting for CI to pass each time:
 
-In **Storage**:
+| Order | Compare branch | Base branch |
+| --- | --- | --- |
+| 1 | `fix/pd3-test-runner` | `develop` |
+| 2 | `hardening/pd3-vault-integrity` | `develop` |
+| 3 | `fix/pd3-cascade-cleanup` | `develop` |
+| 4 | `test/pd3-regressions-report` | `develop` |
 
-1. Create a **private** bucket named `wefiles-private`.
-2. Set its upload size limit to at least `52,428,800` bytes (50 MiB), matching
-   the app's maximum. Keep public access disabled.
-3. In the Storage S3 settings, generate an **S3 access key ID and secret**.
-   Copy the displayed S3 endpoint and region too. Use these S3 credentials,
-   rather than an anon/publishable key or database password.
+Use **Create a merge commit** so the later work branches recognize the earlier
+commits. Keep all merged branches. Then create the release PR with
+**base: main**, **compare: develop**, check CI, and merge it.
 
-These S3 credentials belong only in the Django server's environment. They can
-bypass bucket RLS and must not be placed in browser code. The current backend
-checks ownership before streaming a private attachment.
+**Expected result:** GitHub `main` includes the PD3 code, report, and this guide.
+The repository stays Public. This meets the minimum three work PRs into
+`develop` plus one release PR into `main`; this checkout provides four work PRs.
+Local Git merges alone do not count as GitHub PRs.
+
+## 3. Create your Supabase project
+
+1. Sign in at [Supabase](https://supabase.com/dashboard).
+2. Click **New project**, choose your organization, and enter a project name.
+3. Choose and save the project's **database password**. This is separate from
+   your Supabase account login password.
+4. Choose a region near your intended Render region and create the project.
+5. Wait until the project's database is ready.
+6. Because this app accesses PostgreSQL through Django rather than the public
+   Data API, open the **Data API integration overview** and switch
+   **Enable Data API** off before creating the Django tables.
+
+Use a fresh project dedicated to this Django schema. Existing legacy WeFiles
+SQL/data is not interchangeable with these migrations. See
+[Supabase's Data API guidance](https://supabase.com/docs/guides/api/securing-your-api).
+
+**Expected result:** a ready Supabase project with its database password saved.
+No Django tables are expected yet.
+
+## 4. Copy the Supabase database connection
+
+1. In the Supabase project, click **Connect**.
+2. Select the PostgreSQL URI connection string and choose **Session pooler**.
+3. Copy the complete URL. Use port **5432** and keep the exact hostname shown.
+4. Replace the password placeholder with your URL-encoded database password.
+   For example, `@` becomes `%40`, `#` becomes `%23`, and `%` becomes `%25`.
+   Encode only the password, not the entire URL.
+
+The URL has this shape; copy the real values from your dashboard:
+
+```text
+postgresql://postgres.PROJECT_REF:ENCODED_PASSWORD@POOLER_HOST:5432/postgres
+```
+
+Save it privately as the value for `DATABASE_URL`. Do not use a localhost URL,
+a project API URL, an anon key, or your local test database connection.
+[Supabase connection instructions](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+**Expected result:** you have the hosted PostgreSQL connection URL for Render.
+
+## 5. Create the private upload bucket
+
+In Supabase, open **Storage -> New bucket**:
+
+| Setting | Value |
+| --- | --- |
+| Bucket name | `wefiles-private` |
+| Public bucket | Off |
+| File size limit | Support the app's maximum: `52,428,800` bytes (50 MiB) |
+| Allowed file types | Leave unrestricted for the current general-purpose vault |
+
+Create the bucket. Its limit cannot exceed your project's global/plan upload
+limit; confirm the displayed global and bucket limits allow the file sizes you
+intend to demonstrate. Keep the bucket private.
+[Bucket creation](https://supabase.com/docs/guides/storage/buckets/creating-buckets),
+[upload limits](https://supabase.com/docs/guides/storage/uploads/file-limits).
+
+**Expected result:** `wefiles-private` appears in Storage as a private bucket.
+
+## 6. Copy the Supabase S3 storage settings
+
+Open the project's **Storage S3 settings**. Enable S3 access if prompted and
+generate an S3 access-key pair. Save the following privately:
+
+| Supabase value | Render environment-variable name |
+| --- | --- |
+| S3 endpoint | `SUPABASE_S3_ENDPOINT_URL` |
+| Region | `SUPABASE_S3_REGION` |
+| Access Key ID | `SUPABASE_S3_ACCESS_KEY_ID` |
+| Secret Access Key | `SUPABASE_S3_SECRET_ACCESS_KEY` |
+| Your bucket name | `SUPABASE_STORAGE_BUCKET` |
+
+The endpoint usually looks like:
+
+```text
+https://PROJECT_REF.storage.supabase.co/storage/v1/s3
+```
+
+Copy the actual endpoint and region. S3 keys are server credentials with
+privileged storage access; place them only in Render's server environment.
+They are different from the database password and Supabase anon/publishable keys.
 [Supabase S3 authentication](https://supabase.com/docs/guides/storage/s3/authentication).
 
-## 3. Create a native Python web service in Render
+**Expected result:** you have the database URL and all five storage values.
 
-Use **New -> Web Service**, connect the same GitHub repository, and select the
-released `main` branch. The manual dashboard route lets you review the instance
-plan and all secrets before the first deployment.
+## 7. Configure the Render web service
 
-| Render field | Value |
+1. Sign in at [Render](https://dashboard.render.com/).
+2. Click **New -> Web Service** and connect the existing GitHub repository.
+3. Use the following settings. Stay on the creation form until step 8 is done.
+
+| Render setting | Value |
 | --- | --- |
+| Name | `wefiles` or another available service name |
 | Language/runtime | Python 3, native environment |
-| Branch | `main`, after the PD3 release PR is merged |
-| Root directory | Leave blank when `manage.py` is at the repository root |
+| Branch | `main`, after step 2's release PR |
+| Root directory | Leave blank; `manage.py` is at this repository's root |
 | Build command | `bash build.sh` |
 | Start command | `bash start.sh` |
 | Health check path | `/health/` |
-| Instances | Start with one |
-| Auto-deploy | Off initially; deploy manually after review |
-| Instance plan | Choose explicitly; Free can be used for a limited demo |
+| Auto-deploy | Off initially |
+| Instances | One |
+| Instance plan | Choose explicitly; Free is suitable for a limited class demo |
 
-The tracked `.python-version` selects Python `3.14.10`. If you set
-`PYTHON_VERSION` in Render, use the same full version because that variable
-has precedence. See [Render's Python version settings](https://render.com/docs/python-version).
+Python `3.14.10` is selected by the tracked `.python-version`. If you also set
+`PYTHON_VERSION` in Render, keep it equal to that version. Free web services
+sleep after 15 idle minutes, so open the site before demonstrating it.
+[Render Django setup](https://render.com/docs/deploy-django),
+[Python version](https://render.com/docs/python-version),
+[Free-service behavior](https://render.com/docs/free).
 
-The repository also contains a `render.yaml` Blueprint with the same commands.
-You can use it instead, but review its plan before applying: the file does not
-select Free explicitly. **Creating a Blueprint starts an initial deployment**,
-even though `autoDeployTrigger: off` disables later automatic code deploys.
-If you want fully manual Blueprint updates, disable its Auto Sync separately.
-See [Render Blueprints](https://render.com/docs/infrastructure-as-code) and the
-[Blueprint field reference](https://render.com/docs/blueprint-spec).
+Use the manual Web Service route for this walkthrough. The repository's
+`render.yaml` is an alternative Blueprint; creating a Blueprint immediately
+starts its first deployment, and its instance plan must be reviewed separately.
 
-## 4. Enter the production environment variables
+**Expected result:** Render has the correct repository and commands selected,
+but you have not started the initial deployment yet.
 
-Add these in Render before creating/deploying the service:
+## 8. Add production environment variables in Render
 
-| Variable | Production value |
-| --- | --- |
-| `SECRET_KEY` | A newly generated random secret of at least 50 characters; keep it stable across deploys |
-| `DATABASE_URL` | The hosted PostgreSQL session-pooler URL from step 2 |
-| `DJANGO_DEBUG` | `False` |
-| `TRUST_PROXY` | `True` |
-| `PRIVATE_STORAGE_BACKEND` | `supabase` |
-| `SUPABASE_S3_ENDPOINT_URL` | The copied HTTPS S3 endpoint, usually `https://PROJECT_REF.storage.supabase.co/storage/v1/s3` |
-| `SUPABASE_S3_REGION` | The region copied from Supabase Storage |
-| `SUPABASE_S3_ACCESS_KEY_ID` | The generated S3 access key ID |
-| `SUPABASE_S3_SECRET_ACCESS_KEY` | The generated S3 secret |
-| `SUPABASE_STORAGE_BUCKET` | `wefiles-private` |
-
-Generate a production secret on your machine, using your virtual environment:
+Generate a new secret on your machine, in the Python environment you used for
+local setup:
 
 ```text
 python -c "import secrets; print(secrets.token_urlsafe(64))"
 ```
 
-Render's `*.onrender.com` hostname is added automatically to `ALLOWED_HOSTS`
-and `CSRF_TRUSTED_ORIGINS` by this app. For a custom domain, also set explicit
-`ALLOWED_HOSTS=files.example.com` and
-`CSRF_TRUSTED_ORIGINS=https://files.example.com`, using your real hostname.
+On the Render creation form, add every variable below. Paste values into
+Render's environment-variable fields, not into a committed file.
 
-Copy only these production settings into Render. The local `.env` contains
-local/test database addresses, so do not import it wholesale. Leave
-`TEST_DATABASE_URL` unset on the hosted service, and do not select
-`config.test_settings` or the temporary local-preview settings there.
+| Key | Value |
+| --- | --- |
+| `SECRET_KEY` | The generated secret; keep it stable across later deployments |
+| `DATABASE_URL` | The complete Supabase Session pooler URL from step 4 |
+| `DJANGO_DEBUG` | `False` |
+| `TRUST_PROXY` | `True` |
+| `PRIVATE_STORAGE_BACKEND` | `supabase` |
+| `SUPABASE_S3_ENDPOINT_URL` | The S3 endpoint from step 6 |
+| `SUPABASE_S3_REGION` | The Storage region from step 6 |
+| `SUPABASE_S3_ACCESS_KEY_ID` | The S3 Access Key ID from step 6 |
+| `SUPABASE_S3_SECRET_ACCESS_KEY` | The S3 Secret Access Key from step 6 |
+| `SUPABASE_STORAGE_BUCKET` | `wefiles-private` |
+
+The app automatically trusts the Render-provided `*.onrender.com` hostname.
+Leave `TEST_DATABASE_URL` unset on the hosted service and use the normal
+`config.settings`, not `config.test_settings`. Your existing local `.env`
+contains local/test connections, so copy only the production values above.
+For a custom domain, add its real hostname to `ALLOWED_HOSTS` and its HTTPS
+origin to `CSRF_TRUSTED_ORIGINS`.
 [Render environment-variable guide](https://render.com/docs/configure-environment-variables).
 
-## 5. Start the deployment and inspect the logs
+**Expected result:** all ten required production variables have real values.
 
-After checking the plan and variables, create the service or manually deploy
-the latest released commit. Render will run:
+## 9. Deploy and let Django create the Supabase tables
 
-1. `build.sh`: install `requirements.txt`, run production configuration checks,
-   and collect static assets.
-2. `start.sh`: apply Django migrations, retry queued private-object deletions,
-   and start Gunicorn on Render's provided port.
-3. `/health/`: query PostgreSQL to confirm the database is reachable.
+Click **Deploy Web Service** (or the equivalent create/deploy button). Watch
+Render's build and startup logs:
 
-Keep one service instance initially: the current startup script applies
-migrations. Move schema changes to a coordinated deployment step before scaling
-to multiple instances. A failed build/start log should be fixed before treating
-the service as ready.
+1. `build.sh` installs dependencies, checks production configuration and
+   collects static assets.
+2. `start.sh` runs `python manage.py migrate --noinput` against Supabase,
+   retries queued storage deletions, then starts Gunicorn on Render's port.
+3. Render checks `/health/` before considering the service healthy.
 
-No persistent Render disk is needed for this configuration: PostgreSQL holds
-records and Supabase holds uploaded bytes. Render's local filesystem is
-**ephemeral**, so do not switch hosted uploads to `local`. The app rejects
-local storage when `DJANGO_DEBUG=False`.
-[Render filesystem and free-service behavior](https://render.com/docs/free).
+**You do not need to paste table-creation SQL into Supabase's SQL Editor.** The
+tracked files in `accounts/migrations/` and `vault/migrations/` create the schema
+in Supabase. If migrating manually from a correctly configured environment,
+the equivalent command is `python manage.py migrate`.
 
-## 6. Verify the deployed app
+After startup, Supabase's Table Editor should show tables such as:
 
-Use the actual HTTPS Render URL and disposable demo accounts:
+```text
+accounts_user
+vault_folder
+vault_vaultfile
+vault_storagedeletionjob
+django_session
+django_migrations
+```
 
-- Open `/health/`: expect `{"status":"ok"}`. This checks the database, not S3.
-- Check the home page and CSS, register two Members and an Admin candidate,
-  sign in/out, and edit each user's own profile.
-- Promote the Admin candidate with the existing command:
+**Expected result:** Render reports the service Live, provides an HTTPS URL,
+and the Django tables exist in Supabase. A new database has no app accounts;
+registration happens in your deployed Django app, not Supabase Auth.
 
-  ```text
-  python manage.py promote_workspace_admin YOUR_REGISTERED_USERNAME
-  ```
+## 10. Check the live app and finish your report
 
-  Run it in Render Shell if your plan provides one. Otherwise, run it on your
-  machine with a temporary terminal environment pointing `DATABASE_URL` to the
-  same hosted application database. Keep local/test settings separate. Do not
-  run the automated suite against the production database.
+Use the actual HTTPS URL provided by Render:
 
-- As Member A: create nested folders, upload a small file, download and compare
-  its bytes, rename/move it, and confirm deletion. Also verify a larger file
-  within the 50 MiB limit; do not claim that limit is verified from a tiny file.
-- Try blank names, an empty upload, duplicate folders, invalid destinations,
-  deleting a nonempty folder, and deletion without confirmation. Expect clear
-  errors and unchanged records.
-- As Member B: try Member A's file/folder URLs and POST actions; expect denial
-  without seeing or changing A's content. A Member's Admin dashboard URL should
-  return 403.
-- Visit an invalid URL: expect the custom 404 page with no debug traceback.
-  The custom 500 handler has local regression coverage; do not deliberately
-  break the live service to collect a screenshot.
-- Restart/redeploy once, then confirm accounts, metadata, and uploaded bytes
-  still exist. After deleting a file, check private-byte cleanup or its retry
-  job. If needed, run `python manage.py process_storage_deletions --limit 100`.
-- Capture the report's real validation-error, denied-access, custom-404 and
-  console test-output screenshots. Update the report's hosted URL, remaining
-  issue statuses and deployed demo accounts only after these checks pass.
+1. Open `/health/`. Expect `{"status":"ok"}`. This checks PostgreSQL only.
+2. Open `/accounts/register/`. Register two Members and an Admin candidate.
+3. Sign in, check the Member dashboard, edit a profile, and sign out/in.
+4. Create a folder, upload a small file, download it and compare its contents.
+   This verifies S3 as well as the database. Verify a larger allowed file too.
+5. Rename/move the file, confirm deletion, and try deleting a nonempty folder.
+6. As the second Member, try the first Member's file/folder URLs. Expect 404;
+   the Admin dashboard should return 403 to a Member.
+7. Open an invalid URL. Expect the custom 404 page with no Django traceback.
+8. Restart/redeploy once. Confirm accounts, records and uploaded bytes persist.
+9. Capture the required genuine screenshots and update the PD3 report with the
+   hosted URL, actual results and disposable hosted test accounts.
 
-The report's current three accounts are local evidence accounts only. They
-are not automatically created in the hosted database; create dedicated hosted
-accounts and use test passwords for the submitted account table.
+To promote the registered Admin candidate, run the existing command against
+the hosted application database:
 
-## 7. Common deployment problems
+```text
+python manage.py promote_workspace_admin YOUR_REGISTERED_USERNAME
+```
 
-| Symptom | Check |
+Use Render Shell if available on your plan. Otherwise run the command from your
+machine with a temporary terminal environment using the hosted application's
+`DATABASE_URL`. The command changes a workspace role; Django staff privileges
+remain separate. Keep local/test settings separate and never run the automated
+suite against the production database.
+
+The report's existing `pd3admin`, `pd3member`, and `pd3other` accounts belong only
+to the temporary local evidence database. They are not created automatically on
+Supabase. Create fresh hosted test accounts for the final report.
+
+## If a step fails
+
+| Problem | What to check |
 | --- | --- |
-| `Set SECRET_KEY` | Set a generated secret of at least 50 characters. |
-| Invalid `DATABASE_URL` or connection refused | Use the hosted session-pooler URL, URL-encode the password, confirm the database is active and accessible. |
-| Missing private-storage settings | Enter all five S3 settings and keep `PRIVATE_STORAGE_BACKEND=supabase`. |
-| `AccessDenied` / storage unavailable | Check bucket name, endpoint, region, generated S3 keys and bucket limits. `/health/` alone does not establish storage access. |
-| 400 / disallowed host | Check the actual service hostname or custom `ALLOWED_HOSTS`; do not use `*`. |
-| 403 on a normal form | Use the HTTPS hostname, check the custom trusted origin, and reload the form for a fresh CSRF token. |
-| Static CSS missing | Check build logs for `collectstatic` and keep the provided WhiteNoise configuration. |
-| First request is slow on Free | Free web services spin down after 15 minutes idle and take time to wake. |
-| Deployed app lacks PD3 changes | Check that the selected branch/commit includes the local hardening work after your release PR. |
+| GitHub work PR has no changes | Check its base/compare branches and whether those changes are already merged. Follow the ordered work PRs instead of publishing integrated local `develop` first. |
+| Database connection error | Use the exact Session pooler host on port 5432, the correct project database password and its URL-encoded form. Confirm the project is ready. |
+| Missing secret/storage setting | Enter all ten variables from step 8. Keep `DJANGO_DEBUG=False`. |
+| Tables are missing | Read Render's startup migration logs. Check that `DATABASE_URL` points to the intended Supabase project. |
+| `/health/` passes but uploads fail | Recheck the private bucket, S3 endpoint, region, key pair and upload limits. Health does not test storage. |
+| CSS is missing | Check `collectstatic` in the build logs and keep the supplied WhiteNoise configuration. |
+| Form submission returns 403 | Use the HTTPS service URL, check custom trusted origins if applicable and reload the form. |
+| First request is slow on Free | Allow the service to wake from idle before your demonstration. |
+| Files disappear after redeploy | Confirm storage is `supabase`, not Render's temporary local filesystem. |
 
-Review current [Render plan details](https://render.com/docs/free) before your
-class demonstration. A Free service can sleep; choose a plan deliberately for
-the availability you need. This guide makes no claim that cloud deployment or
-hosted acceptance has already passed.
+The deployment is complete only after your live checks pass. Until then,
+hosted acceptance, screenshots and remote PR evidence remain pending in the
+report. Keep one service instance initially because migrations run at startup;
+coordinate migrations separately before scaling to multiple instances.

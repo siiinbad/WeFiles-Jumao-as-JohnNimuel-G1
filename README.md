@@ -344,9 +344,10 @@ same full-suite command against an isolated PostgreSQL service.
 
 ## Render deployment
 
-Follow the [Render deployment guide](docs/RENDER_DEPLOYMENT.md) to publish the
-tested code and configure the service yourself. It covers the exact dashboard
-commands, production variables, private storage, verification and troubleshooting.
+Follow the [numbered deployment walkthrough](docs/RENDER_DEPLOYMENT.md):
+**GitHub -> Supabase -> Render -> live verification**. It includes the exact
+Git push commands, PR order, private bucket setup, production variables,
+Render build/start commands, automatic table creation and troubleshooting.
 Deployment remains the owner's task; no cloud service was created here.
 
 [render.yaml](render.yaml), [build.sh](build.sh), and [start.sh](start.sh) prepare
