@@ -1,10 +1,10 @@
-# WeFiles - Project Development 2 (in progress)
+# WeFiles - Project Development 3
 
-Increment 2 in `wefiles-increment/` builds on this checkout's existing Django
-account feature and uses `../WeFiles/` as the reference for folders, uploads,
-private downloads, validation and storage cleanup. The original `WeFiles/`
-application is preserved. This increment is being prepared; Supabase and Render
-are not configured and the submission is not final.
+PD3 hardens the existing private file vault and standard account features.
+It adds regression coverage and safer access, validation, and deletion handling;
+it does not add new product features. Local PostgreSQL verification is complete.
+GitHub is read-only for this work: local branches/commits are prepared, while
+remote PRs, deployment verification, and final submission evidence remain pending.
 
 ## Core feature: private file vault
 
@@ -342,7 +342,13 @@ python manage.py check --settings=config.test_settings
 For verbose test names use `python manage.py test --verbosity 2`. CI uses the
 same full-suite command against an isolated PostgreSQL service.
 
-## Render preparation
+## Render deployment
+
+Follow the [numbered deployment walkthrough](docs/RENDER_DEPLOYMENT.md):
+**GitHub -> Supabase -> Render -> live verification**. It includes the exact
+Git push commands, PR order, private bucket setup, production variables,
+Render build/start commands, automatic table creation and troubleshooting.
+Deployment remains the owner's task; no cloud service was created here.
 
 [render.yaml](render.yaml), [build.sh](build.sh), and [start.sh](start.sh) prepare
 static collection, HTTPS/proxy settings, private Supabase Storage, migrations,
@@ -353,7 +359,15 @@ when the remaining setup is ready. No Render service was created here.
 See [setup and deployment](docs/SETUP.md),
 [requirements status](docs/REQUIREMENTS.md),
 [branch/PR workflow](docs/GITHUB_WORKFLOW.md), and [verification](VERIFICATION.md).
-The supplied report template is retained in `docs/`; the filled report stays a
-**draft**, with final identity, screenshots, test accounts, PR links and hosted
-verification pending. Its final required filename is
-`WeFiles-Lastname-Firstname-Section-PD2.pdf`.
+The [PD3 hardening report](docs/WeFiles-Lastname-Firstname-Section-PD3.pdf)
+retains every section of the supplied template. Student identity fields are
+blank as requested. It is an unsigned local draft: browser screenshots, hosted
+acceptance, and the required GitHub PR merges remain pending. The filename
+keeps identity placeholders until those fields are supplied. See
+[PD3 evidence and remaining work](docs/PD3_EVIDENCE.md) and the captured
+[test results](docs/pd3/test-results.txt).
+
+The historical PD2 report and template are retained for comparison. To regenerate
+the PD3 PDF, install `requirements-docs.txt` and LibreOffice, then run
+`python scripts/generate_pd3_report.py`. These tools are optional and are not
+needed to run the app or its tests.

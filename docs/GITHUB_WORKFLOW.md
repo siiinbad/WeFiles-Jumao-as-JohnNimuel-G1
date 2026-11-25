@@ -48,3 +48,13 @@ for future PRs rather than submitting the old combined branch again.
 - Live Supabase database/private storage and hosted Render acceptance.
 - Final student/section details, labeled screenshots and working test accounts.
 - Signed final docs/WeFiles-Lastname-Firstname-Section-PD2.pdf and its commit.
+
+
+## PD3 local hardening workflow
+
+See [PD3 evidence](PD3_EVIDENCE.md) for the retained local work branches and
+verification. GitHub is read-only for this task: local integration does not
+count as the required remote PR merges. PD3 requires work branches from
+`develop` using `fix/`, `hardening/`, or `test/`, at least three work PRs into
+`develop`, and one release PR from `develop` into `main`. Keep merged branches.
+No direct commits to `main` are part of this increment.
